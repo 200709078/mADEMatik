@@ -73,6 +73,15 @@ server_responds() {
         --connect-timeout=2 ping >/dev/null 2>&1
 }
 
+socket_is_in_use() {
+    [[ -r /proc/net/unix ]] || fail 'Unix soket sahipliği gözlemlenemedi; işlem yapılmadı.'
+    local socket_number socket_refs socket_protocol socket_flags socket_type socket_state socket_inode socket_address
+    while read -r socket_number socket_refs socket_protocol socket_flags socket_type socket_state socket_inode socket_address; do
+        [[ "$socket_address" != "$socket_file" ]] || return 0
+    done < /proc/net/unix
+    return 1
+}
+
 [[ ! -e "$pid_file" || -f "$pid_file" ]] \
     || fail 'PID yolunda beklenmeyen bir dosya var; işlem yapılmadı.'
 pid=''
@@ -122,12 +131,19 @@ case "$action" in
     start)
         [[ -x "$server_bin" && -x "$admin_bin" ]] \
             || fail 'MariaDB sunucu veya denetim programı bulunamadı.'
+        command -v setsid >/dev/null || fail 'Bağımsız MariaDB süreci için setsid bulunamadı.'
         if [[ -n "$pid" ]] && process_is_owned "$pid"; then
-            printf '%s\n' 'Projeye ait yerel MariaDB zaten çalışıyor.'
-            exit 0
+            for ((attempt = 0; attempt < 100; attempt++)); do
+                if server_responds; then
+                    printf '%s\n' 'Projeye ait yerel MariaDB zaten çalışıyor; özel soket hazır.'
+                    exit 0
+                fi
+                sleep 0.2
+            done
+            fail 'MariaDB süreci çalışıyor ancak özel soket hazır değil. Veri dizini korunuyor.'
         fi
-        if [[ -S "$socket_file" ]]; then
-            fail 'Özel soket var ancak sahip PID doğrulanamadı; ikinci sunucu başlatılmadı.'
+        if socket_is_in_use || { [[ -S "$socket_file" ]] && server_responds; }; then
+            fail 'Özel soket kullanımda ancak sahip PID doğrulanamadı; ikinci sunucu başlatılmadı.'
         fi
 
         mkdir -p -- "$data_dir"
@@ -148,7 +164,7 @@ case "$action" in
         [[ ! -e "$pid_file" || -f "$pid_file" ]] \
             || fail 'PID yolunda beklenmeyen bir dosya var; üzerine yazılmadı.'
         rm -f -- "$socket_file" "$pid_file"
-        nohup "$server_bin" --no-defaults --datadir="$data_dir" \
+        nohup setsid -- "$server_bin" --no-defaults --datadir="$data_dir" \
             --socket="$socket_file" --pid-file="$pid_file" --log-error="$log_file" \
             --skip-networking --skip-name-resolve \
             </dev/null >> "$log_file" 2>&1 9>&- &

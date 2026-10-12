@@ -40,5 +40,6 @@ class AppServiceProvider extends ServiceProvider
             return (new \Illuminate\Notifications\Messages\MailMessage)->subject(__('mail.reset_subject'))->greeting(__('mail.greeting',['name'=>$user->name]))->line(__('mail.reset_body'))->action(__('mail.reset_action'),$url)->line(__('mail.reset_expiry',['minutes'=>config('auth.passwords.users.expire')]))->line(__('mail.ignore'))->salutation('mADEMatik Solutions');
         });
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\CommandStarting::class, [\App\Services\DatabaseSafety::class,'guard']);
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\CommandStarting::class, [\App\Services\LocalDatabase::class,'startForServe']);
     }
 }

@@ -13,6 +13,11 @@ class DatabaseSafety
         if (!in_array($event->command,['migrate','migrate:install','migrate:rollback','db:seed','schema:dump','madematik:create-super-user'],true)) return;
         $connection=config('database.default');
         if ($event->command!=='madematik:create-super-user') $connection=$event->input->getOption('database') ?: $connection;
+        self::assertOwnedConnection($connection);
+    }
+
+    public static function assertOwnedConnection(mixed $connection): void
+    {
         if (!is_string($connection) || $connection!=='mysql') throw new \RuntimeException('Veritabanı sahipliği doğrulanmadı. Yalnız yeni mADEMatik veritabanına işlem yapılabilir.');
         $db=config('database.connections.'.$connection);
         $hasUrl=isset($db['url']) && $db['url']!=='';

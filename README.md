@@ -11,9 +11,16 @@ PHP 8.4 ve gerekli Laravel/MySQL eklentileri, Composer, Node/npm ve MariaDB gere
 Mevcut yerel kurulum `.env` dosyasını ve ayrı veritabanını hazırlar. `.env` dosyasını paylaşmayın, depoya eklemeyin veya mevcut başka projeden kopyalamayın.
 
 ```bash
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+Yerel `php artisan serve` ve `composer dev`, web sunucusunu açmadan önce bu projeye ait mevcut MariaDB örneğini otomatik başlatır. Bilgisayar yeniden açıldıktan sonra da aynı komut yeterlidir. Bu davranış yalnız `APP_ENV=local` ve sahipliği doğrulanmış geliştirme soketinde çalışır; QA/test/üretim ortamlarını başlatmaz. Migration, seed, veritabanı oluşturma veya parola değiştirme yapmaz. İlk DB kurulumu henüz yapılmamışsa açık bir hata ile durur.
+
+Veritabanını web sunucusundan ayrı başlatmak veya durumunu görmek için:
+
+```bash
 ./scripts/dev-database.sh start
 ./scripts/dev-database.sh status
-php artisan serve --host=127.0.0.1 --port=8000
 ```
 
 Site: `http://127.0.0.1:8000`. Vite geliştirme sunucusu istenirse ayrı terminalde `npm run dev` çalıştırılır. Derlenmiş varlıklar için:
@@ -38,7 +45,7 @@ Yerel veritabanını durdurmak için:
 ./scripts/dev-database.sh stop
 ```
 
-Veritabanı MariaDB/MySQL uyumludur. Yerel sunucu yalnızca `storage/runtime/mariadb.sock` Unix soketinden erişilen özel MariaDB örneğidir; TCP ağı kapalıdır. Verisi `storage/runtime/mariadb/` altındadır. `madematik_v2` veritabanı ve ayrı `madematik_v2_user` yalnızca bu projeye aittir. `.env` içindeki `DB_OWNERSHIP=madematik_v2` sahiplik işareti ve tam proje soketi migration güvenlik kontrolünde doğrulanır. Parola `.env` içindedir; runtime klasörünü silmek veri kaybına neden olur.
+Veritabanı MariaDB/MySQL uyumludur. Yerel sunucu yalnızca `storage/runtime/mariadb.sock` Unix soketinden erişilen özel MariaDB örneğidir; TCP ağı kapalıdır. Sistemin açılışta çalışan MariaDB servisinden bağımsızdır. Web terminali kapandığında özel DB çalışmaya devam eder; bilgisayar kapanınca durur ve sonraki `artisan serve` onu tekrar açar. Verisi `storage/runtime/mariadb/` altındadır. `madematik_v2` veritabanı ve ayrı `madematik_v2_user` yalnızca bu projeye aittir. `.env` içindeki `DB_OWNERSHIP=madematik_v2` sahiplik işareti ve tam proje soketi migration güvenlik kontrolünde doğrulanır. Parola `.env` içindedir; runtime klasörünü silmek veri kaybına neden olur.
 
 Veri dizini gerçekten yeni ve boşsa başlangıç betiği MariaDB sistem tablolarını oluşturur ve `php artisan madematik:initialize-local-db` ile yalnız uygulamanın yeni DB/kullanıcısını hazırlar. Var olan dolu dizini tekrar kurmaz. PID ve özel veri/soket yolları doğrulanmadan çalışan bir süreç durdurulmaz.
 

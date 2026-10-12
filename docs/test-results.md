@@ -84,6 +84,17 @@ Makineye özel rapor ve ekran görüntüleri Git dışında `storage/runtime/` a
 - `qa-runtime-report.json`: 12 MariaDB kontrolü ve sorgu sayısı.
 - `qa/lighthouse-home-{mobile,desktop}-optimized.report.{json,html}` ve `qa/lighthouse-optimized-summary.{json,md}`: son performans ölçümleri; ilk ölçümler de korunur.
 
+## Yerel veritabanı başlatma düzeltmesi — 12 Ekim 2026
+
+Bilgisayar yeniden açıldıktan sonra özel MariaDB süreci çalışmadığından `artisan serve` ile sayfa açma 2002 soket hatası veriyordu. Yerel `serve` komutuna mevcut proje veritabanını açan, sahiplik ve hazır soket kontrolü eklendi. Otomatik ilk kurulum, migration/seed veya gizli ayar değişimi yapılmaz. QA/testing/production ve diğer Artisan komutları bu otomatik başlatmadan etkilenmez.
+
+- Yeni başlatma güvenliği senaryoları: **17 test / 34 assertion**, sahte süreçlerle başarılı.
+- Mevcut veritabanı komut koruması regresyonları: **2 test / 32 assertion**, başarılı.
+- Gerçek özel yerel DB güvenle durduruldu; `php artisan serve` DB'yi açtı. Ana sayfa ve giriş HTTP **200** döndü. İş verilerinin kayıt sayıları ve `.env` SHA256 değeri değişmedi.
+- Aynı DB'yi tekrar başlatma mevcut PID'yi kullandı; ikinci MariaDB süreci oluşturulmadı. Test web terminali kapandığında DB açık kaldı; kullanıcının mevcut `8000` sunucusu HTTP **200** döndürdü.
+
+İşletim sistemi yeniden başlatılmadı; DB'nin kapalı olduğu başlangıç durumu kontrollü olarak doğrulandı. Sistemin MariaDB servisi ve diğer proje/DB ayarları değiştirilmedi. Bu ek kontrol, yukarıdaki ilk kapsamlı koşunun sayılarından ayrı raporlanır.
+
 ## Yayından önce kalanlar
 
 Yerel sonuçlar geçmiştir. Gerçek cPanel/PHP-FPM/document root, HTTPS/SSL, ayrı üretim DB sahipliği, dosya izinleri, gerçek SMTP ve cron/worker çalışma biçimi ayrıca onaylanmış canlı hazırlığında doğrulanmalıdır. Gerçek bağımsız uygulama dizinlerinin ve URL harf düzeninin korunması aynı hazırlığın parçasıdır; yerel fixture deneyi mevcut sunucuyu doğrulamaz.

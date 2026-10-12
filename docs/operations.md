@@ -12,6 +12,10 @@ Yerel özel MariaDB örneği yalnızca bu proje için oluşturulur:
 - İşletim: `./scripts/dev-database.sh start`, `status` ve `stop`.
 - Kimlik bilgileri yalnızca `.env` dosyasında tutulur. Runtime, `.env`, yüklenen medya ve yedekler sürüm kontrolüne alınmaz.
 
+Yerel `php artisan serve` öncesinde `LocalDatabase` konsol dinleyicisi mevcut özel MariaDB'yi açar ve soket hazır olmadan web sunucusunu başlatmaz. Yalnız `APP_ENV=local`, güvenli DB adı/kullanıcı/sahiplik ve tam geliştirme soketi kabul edilir; URL/read-write hedefleri ve QA soketi reddedilir. Mevcut sistem tablo dizini yoksa otomatik ilk kurulum yapılmaz; migration/seed veya `.env` değişimi tetiklenmez. QA/testing/production ve diğer Artisan komutlarında bu davranış devre dışıdır.
+
+Özel süreç sistemin MariaDB servisi değildir; bilgisayar kapanınca durur. [MariaDB systemd belgesi](https://mariadb.com/docs/server/server-management/starting-and-stopping-mariadb/systemd) sistem servisini açılışta başlatma davranışını açıklar. Bu proje için sistem servisi veya kullanıcı oturum ayarları değiştirilmez. Başlatma betiği `setsid` ile ayrı oturum açar; web terminalinin kapanması DB'yi durdurmaz. Kapanmadan kalan soket yalnız kernelde kullanılmadığı ve sahip PID'nin çalışmadığı doğrulanınca temizlenebilir; belirsiz aktif soket/PID korunur.
+
 Başlatma/bitiş betiği yalnızca kendi soket/PID/veri dizinini hedefler; sistem MariaDB servisini durdurmaz. Kapatmadan önce PID'nin yürütücüsü ve tam özel datadir/socket argümanları doğrulanır; yalnız TERM gönderilir. Veri dizini, soket veya PID belirsizliğinde çalışmaya devam edilmez. Yalnız yeni boş veri dizini `mariadb-install-db --auth-root-authentication-method=normal --skip-test-db` ile hazırlanır; ardından `php artisan madematik:initialize-local-db` yeni uygulamanın ayrı DB/kullanıcısını oluşturur. Mevcut dolu dizine tekrar kurulum uygulanmaz.
 
 Migration güvenlik denetimi varsayılan veya sahipliği doğrulanmamış veritabanına yazmayı engeller. Yerelde `DB_OWNERSHIP=madematik_v2`, seçilen DB adı ve projeye ait tam Unix soketi doğrulanır; başarısız denetimi aşmak için başka bir projeden ayar kopyalanmaz.
