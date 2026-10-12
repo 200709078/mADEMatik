@@ -10,7 +10,7 @@
             @if($project)<input type="hidden" name="project_id" value="{{ $project->id }}">@endif
             @if($parent)<input type="hidden" name="parent_id" value="{{ $parent->id }}">@endif
             <div class="hidden" aria-hidden="true"><label for="website-{{ $parent?->id ?? 'new' }}">Website</label><input id="website-{{ $parent?->id ?? 'new' }}" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-            <x-ui.textarea name="body" :id="'comment-body-'.($parent?->id ?? 'new')" :label="$parent ? __('ui.reply_label') : __('ui.comment_label')" :placeholder="__('ui.comment_placeholder')" rows="4" required minlength="5" maxlength="3000" />
+            <x-ui.textarea name="body" :id="'comment-body-'.($parent?->id ?? 'new')" :label="$parent ? __('ui.reply_label') : __('ui.comment_label')" :placeholder="__('ui.comment_placeholder')" rows="4" required minlength="10" maxlength="3000" />
             <p class="text-muted text-xs leading-6">{{ __('ui.comment_pending_note') }}</p>
             <div class="flex flex-wrap items-center gap-4"><x-ui.button type="submit"><x-icon name="send" class="h-4 w-4" />{{ __('ui.comment_send') }}</x-ui.button>@unless($parent)<a href="{{ route('profile.edit') }}#comments" class="link text-xs">{{ __('ui.my_comments') }}</a>@endunless</div>
         </form>

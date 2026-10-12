@@ -14,7 +14,7 @@ class CommentController extends Controller
     public function store(Request $request,NotificationService $notifications)
     {
         Gate::authorize('create',Comment::class);
-        $data=$request->validate(['body'=>['required','string','min:10','max:3000'],'project_id'=>['nullable','integer'],'parent_id'=>['nullable','integer'],'website'=>['nullable','max:0']]);
+        $data=$request->validate(['body'=>['required','string','min:10','max:3000'],'project_id'=>['nullable','integer','min:1'],'parent_id'=>['nullable','integer','min:1'],'website'=>['nullable','max:0']]);
         if (!empty($data['project_id'])) Project::published()->findOrFail($data['project_id']);
         if (!empty($data['parent_id'])) {
             $parent=Comment::publiclyVisible()->whereNull('parent_id')->findOrFail($data['parent_id']);
@@ -22,6 +22,7 @@ class CommentController extends Controller
         }
         DB::transaction(function() use($request,$data,$notifications) {
             $user=\App\Models\User::lockForUpdate()->findOrFail($request->user()->id);
+            abort_if($user->is_blocked || !$user->hasVerifiedEmail(),403);
             if ($user->comments()->where('status','pending')->count()>=5) throw ValidationException::withMessages(['body'=>'En fazla beş yorumunuz aynı anda onay bekleyebilir.']);
             $body=trim($data['body']);
             if ($user->comments()->where('body',$body)->where('created_at','>',now()->subHour())->exists()) throw ValidationException::withMessages(['body'=>'Bu yorumu kısa süre önce gönderdiniz.']);

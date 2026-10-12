@@ -118,3 +118,5 @@ Buradaki root, bağımsız fiziksel dizinleri aynı URL altında gerçekten suna
 8. Sorun varsa yeni ana site release'i ve onun yapılandırması önceki ana site girişine geri alınır; yeni DB'ye yazılan veriler korunur. Yalnız yeni mADEMatik DB yedeği ve medya gerekirse kontrollü geri yüklenir. Bağımsız uygulamalar ve aWa geri dönüş işleminin dışında kalır. Yeni sürüm verileri varsa yedek üzerine geri yüklemeden önce ayrıca kopyası alınır.
 
 Canlı onay öncesi hiçbir adım gerçek sunucu üzerinde uygulanmaz. Hostingin desteklediği deploy düzeni, SMTP ve hukukî metinlerin nihai kabulü açık kalan yayın ön koşullarıdır.
+
+Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde tam proje soketi ayrıca doğrulanır.

@@ -63,3 +63,5 @@ Yerelde mail `log`, kuyruk `sync` kullanır. Üretim dışı ortamlarda gerçek 
 ## Son aşama onayı
 
 İlk üç aşamada yalnızca sözdizimi/route, yerel derleme, yeni izole veritabanında migration ve bir veya iki smoke kontrolü yapılır. [Aşama 4 test planı](docs/stage-4-test-plan.md) kullanıcı açıkça onayladıktan sonra uygulanır. Kapsamlı test onayı canlıya yayın izni değildir; canlı yayın için ayrıca açık onay gerekir.
+
+Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde tam proje soketi ayrıca doğrulanır.

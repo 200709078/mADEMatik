@@ -26,6 +26,7 @@
 <link rel="icon" href="{{ asset('assets/brand/icons/favicon.ico') }}" sizes="any">
 <link rel="icon" href="{{ asset('assets/brand/icons/icon-32.png') }}" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="{{ asset('assets/brand/icons/icon-180.png') }}">
+<link rel="manifest" href="{{ asset('site.webmanifest') }}">
 <script>try{const m=localStorage.getItem('madematik-theme');document.documentElement.dataset.theme=m==='dark'||(!m&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}catch(e){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}</script>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @stack('head')

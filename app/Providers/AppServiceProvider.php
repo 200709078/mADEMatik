@@ -22,7 +22,6 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Gate::define('admin', fn (\App\Models\User $user) => $user->isSuperUser());
         \Illuminate\Validation\Rules\Password::defaults(fn () => \Illuminate\Validation\Rules\Password::min(12)->mixedCase()->numbers()->symbols());
         if (! app()->isProduction()) config(['mail.default' => 'log']);
-        config(['app.timezone' => 'Europe/Istanbul']);
         \Illuminate\Support\Facades\View::composer(['layouts.app','layouts.admin'], function ($view) {
             try { $settings=\App\Services\Settings::allLocalized(); }
             catch (\Illuminate\Database\QueryException $e) { $settings=array_map(fn($v)=>$v['tr']??[], config('content')); }
@@ -42,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
             if (in_array($event->command,['db:wipe','migrate:fresh','migrate:refresh','migrate:reset'],true)) throw new \RuntimeException('Veri koruma kuralı: toplu/yıkıcı veritabanı komutları bu projede engellidir.');
             if (in_array($event->command,['migrate','migrate:rollback','db:seed','madematik:create-super-user'],true)) {
                 $connection=config('database.default'); $db=config('database.connections.'.$connection);
-                if ($connection !== 'mysql' || config('site.db_ownership') !== 'madematik_v2' || !preg_match('/^madematik_v2(?:_[a-z0-9_]+)?$/',$db['database']??'') || in_array($db['username']??'',['','root'],true)) throw new \RuntimeException('Veritabanı sahipliği doğrulanmadı. Yalnız yeni mADEMatik veritabanına işlem yapılabilir.');
+                if ($connection !== 'mysql' || config('site.db_ownership') !== ($db['database']??null) || !preg_match('/^(?:[a-z0-9]+_)?madematik_v2(?:_[a-z0-9_]+)?$/',$db['database']??'') || in_array($db['username']??'',['','root'],true)) throw new \RuntimeException('Veritabanı sahipliği doğrulanmadı. Yalnız yeni mADEMatik veritabanına işlem yapılabilir.');
                 if (app()->environment('local') && ($db['unix_socket']??'') !== storage_path('runtime/mariadb.sock')) throw new \RuntimeException('Yerel geliştirmede yalnız projeye ait MariaDB soketi kullanılabilir.');
             }
         });
