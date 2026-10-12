@@ -1,8 +1,12 @@
-# Aşama 4 — onay bekleyen kapsamlı test planı
+# Aşama 4 — kapsamlı test planı ve uygulama durumu
 
-Bu plan yazıldı; kapsamlı testler çalıştırılmadı. Kullanıcı ilk üç geliştirme aşamasından sonra açık onay beklenmesini istedi.
+Kullanıcı “commit+push dan sonra kapsamlı testlere başla” diyerek yerel kapsamlı testlere onay verdi. Başlangıç uygulaması `bbaa679` commit'i ile `main` dalına push edildikten sonra testler çalıştırıldı. Ölçülen sonuçlar ve giderilen bulgular [test raporundadır](test-results.md); aşağıdaki tablo kapsamın başvuru planıdır, her satırın bütün olası varyantlarının çalıştırıldığı iddiası değildir.
 
-[AGENTS.md, Aşama 4](../AGENTS.md) gereği: **“Bu aşamaya gelir gelmez DUR.”** ve **“Açıkça onay almadan kapsamlı testlere başlama.”** Aynı talimatta **“Kapsamlı test onayı canlı yayın onayı değildir.”** denir. Yerel kapsamlı test onayı geldikten sonra aşağıdaki plan uygulanır; canlı sunucu için ayrıca onay gerekir.
+[AGENTS.md, Aşama 4](../AGENTS.md) gereği testler açık onaydan sonra başladı. Aynı talimatta **“Kapsamlı test onayı canlı yayın onayı değildir.”** denir. Canlı sunucuda inceleme veya dağıtım yapılmadı; bu işlemler için ayrıca onay gerekir.
+
+## Yerel uygulama sonucu
+
+PHPUnit 96 test/926 assertion, Node sayaç testleri 10/10, Chromium kontrolleri 216/216, özel QA MariaDB kontrolleri 12/12 ve Apache fiziksel dizin fixture kontrolleri 17/17 geçti. Tarayıcı kontrolleri açık/koyu temaları ve kamu sayfalarında 320–1920 px genişlikleri kapsar; kontrol edilen ekranlarda axe ihlali ve JavaScript hatası bulunmadı. Gerçek SMTP, canlı hosting ve bağımsız uygulamaların üretim adresleri bu sonuçlara dahil değildir.
 
 ## Ortam ve sınırlar
 
@@ -12,7 +16,7 @@ Mail Laravel fake/log veya açıkça onaylanmış test SMTP kullanır. Üretim S
 
 Testler tekrarlanabilir senaryolarla yürütülür. Önce sunucu tarafı işlev/yetki akışları, ardından tarayıcı ve görünüm kontrolleri yapılır. Hatalar yeni uygulamada düzeltilir; yalnız ilgili senaryolar ve etkilenebilecek akışlar tekrar çalıştırılır. Test çıktıları sürüm, tarih, ortam, beklenen/gerçek sonuç ve giderilen bulgularla kısa raporlanır.
 
-## Uygulanacak kontroller
+## Kontrol kapsamı
 
 | Alan | Senaryolar ve beklenen sonuç |
 | --- | --- |
@@ -38,7 +42,7 @@ Testler tekrarlanabilir senaryolarla yürütülür. Önce sunucu tarafı işlev/
 | SEO/görseller | Başlık/meta/canonical/OG, sitemap yalnız yayındaki URL'ler, robots, slug, güvenli dış link; boyut/alt/picture/srcset/lazy; ilk hero yüklemesi lazy değildir; raster dosyalar SVG diye sunulmaz. |
 | Güvenlik | CSRF, SQL injection, XSS escape, IDOR, oturum cookie/HTTPS, authorization her endpoint; upload, zararlı redirect/link, throttling, gizli dosya erişimi, yönetici parola doğrulama; debug kapalı üretim ayarı. |
 | Performans | Örnek veriyle sorgu/N+1 ve sayfalama; Vite/font/görsel boyutları, ağ waterfall ve temel Lighthouse kontrolleri; gerçek sunucuya yük testi yapılmaz. |
-| Fiziksel uygulamalar | Yerel yeni fixture dizinleriyle Apache/Nginx fiziksel `-f`/`-d` önceliği ve Laravel fallback davranışı; `/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` asset/index erişimi bozulmaz. Kaynak uygulamalar kopyalanmaz/değiştirilmez. |
+| Fiziksel uygulamalar | Yerel yeni fixture dizinleriyle Apache fiziksel `-f`/`-d` önceliği ve Laravel fallback davranışı; `/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` asset/index erişimi bozulmaz. Kaynak uygulamalar kopyalanmaz/değiştirilmez. Canlı web sunucusu farklıysa onun kuralları ayrıca onaylı yayın hazırlığında doğrulanır. |
 
 ## Kabul ve açık kalan canlı kontroller
 

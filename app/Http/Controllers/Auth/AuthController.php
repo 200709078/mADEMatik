@@ -25,13 +25,13 @@ class AuthController extends Controller
     public function login(): View { return view('auth.login'); }
     public function register(): View { return view('auth.register'); }
     public function forgotPassword(): View { return view('auth.forgot-password'); }
-    public function resetPassword(Request $request, string $token): View { return view('auth.reset-password', ['token' => $token, 'email' => $request->string('email')->toString()]); }
+    public function resetPassword(Request $request, string $token): View { return view('auth.reset-password', ['token' => $token, 'email' => is_string($request->input('email')) ? $request->input('email') : '']); }
     public function verifyEmail(Request $request): View|RedirectResponse { return $request->user()->hasVerifiedEmail() ? redirect()->route('profile.edit') : view('auth.verify-email'); }
     public function confirmPassword(): View { return view('auth.confirm-password'); }
 
     public function authenticate(Request $request): RedirectResponse
     {
-        $credentials = $request->validate(['email' => ['required', 'email', 'max:254'], 'password' => ['required', 'string']]);
+        $credentials = $request->validate(['email' => ['bail', 'required', 'string', 'email', 'max:254'], 'password' => ['required', 'string']]);
         $key = 'login:'.hash('sha256', Str::lower($credentials['email']).'|'.$request->ip());
         if (RateLimiter::tooManyAttempts($key, 5)) {
             throw ValidationException::withMessages(['email' => __('auth.throttle', ['seconds' => RateLimiter::availableIn($key), 'minutes' => ceil(RateLimiter::availableIn($key) / 60)])]);
@@ -49,7 +49,9 @@ class AuthController extends Controller
 
     public function storeUser(Request $request): RedirectResponse
     {
-        $request->merge(['email' => Str::lower((string) $request->input('email'))]);
+        if (is_string($request->input('email'))) {
+            $request->merge(['email' => Str::lower($request->input('email'))]);
+        }
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:254', 'unique:users,email'],
@@ -67,15 +69,17 @@ class AuthController extends Controller
 
     public function sendResetLink(Request $request): RedirectResponse
     {
-        $request->validate(['email' => ['required', 'email', 'max:254']]);
+        $request->validate(['email' => ['bail', 'required', 'string', 'email', 'max:254']]);
         Password::sendResetLink(['email' => Str::lower($request->input('email'))]);
         return back()->with('status', 'Bu adresle kayıtlı bir hesap varsa parola sıfırlama bağlantısı gönderildi.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
     {
-        $request->merge(['email' => Str::lower((string) $request->input('email'))]);
-        $data = $request->validate(['token' => ['required'], 'email' => ['required', 'email'], 'password' => ['required', 'confirmed', PasswordRule::defaults()]]);
+        if (is_string($request->input('email'))) {
+            $request->merge(['email' => Str::lower($request->input('email'))]);
+        }
+        $data = $request->validate(['token' => ['bail', 'required', 'string', 'max:255'], 'email' => ['bail', 'required', 'string', 'email'], 'password' => ['required', 'confirmed', PasswordRule::defaults()]]);
         $status = Password::reset($data, function (User $user, string $password) {
             $user->forceFill(['password' => Hash::make($password), 'remember_token' => Str::random(60)])->save();
             DB::table('sessions')->where('user_id', $user->id)->delete();

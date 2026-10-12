@@ -6,8 +6,7 @@
     <header class="surface sticky top-0 z-40 border-b border-token" x-data="{menuOpen:false}" @keydown.escape.window="menuOpen=false">
         <div class="container-site flex min-h-22 items-center justify-between gap-4">
             <a href="{{ route('home') }}" aria-label="mADEMatik Solutions · {{ __('ui.home') }}" class="shrink-0">
-                <img src="{{ asset('assets/brand/logos/logo-header-light.png') }}" width="240" height="63" alt="mADEMatik Solutions" class="theme-logo-light h-auto w-44 sm:w-56">
-                <img src="{{ asset('assets/brand/logos/logo-header-dark.png') }}" width="240" height="63" alt="mADEMatik Solutions" class="theme-logo-dark h-auto w-44 sm:w-56">
+                <x-brand-logo class="h-auto w-32 min-[360px]:w-44 sm:w-56" />
             </a>
             <nav class="hidden items-center gap-1 xl:flex" aria-label="{{ __('ui.menu') }}">
                 @foreach(['home','about','projects.index','clock','contact'] as $navRoute)
@@ -50,9 +49,9 @@
     <main id="main-content" tabindex="-1">@yield('content')</main>
     <footer class="surface border-t border-token pt-12 pb-6">
         <div class="container-site grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            <div><a href="{{ route('home') }}"><img src="{{ asset('assets/brand/logos/logo-header-light.png') }}" alt="mADEMatik Solutions" width="216" height="57" loading="lazy" class="theme-logo-light w-54"><img src="{{ asset('assets/brand/logos/logo-header-dark.png') }}" alt="mADEMatik Solutions" width="216" height="57" loading="lazy" class="theme-logo-dark w-54"></a><p class="text-muted mt-5 max-w-sm text-sm leading-7">{{ data_get($siteSettings ?? [], 'footer.description', __('ui.footer_note')) }}</p></div>
+            <div><a href="{{ route('home') }}"><x-brand-logo loading="lazy" class="w-54" /></a><p class="text-muted mt-5 max-w-sm text-sm leading-7">{{ data_get($siteSettings ?? [], 'footer.description', __('ui.footer_note')) }}</p></div>
             <nav class="flex flex-col items-start gap-3 text-sm" aria-label="{{ __('ui.projects') }}"><a class="text-muted hover:text-[var(--brand-text)]" href="{{ route('about') }}">{{ __('ui.about') }}</a><a class="text-muted hover:text-[var(--brand-text)]" href="{{ route('projects.index') }}">{{ __('ui.projects') }}</a><a class="text-muted hover:text-[var(--brand-text)]" href="{{ route('comments.index') }}">{{ __('ui.comments') }}</a><a class="text-muted hover:text-[var(--brand-text)]" href="{{ route('contact') }}">{{ __('ui.contact') }}</a></nav>
-            <div><p class="mb-4 text-sm font-semibold">{{ __('ui.other_connections') }}</p><div class="flex flex-wrap gap-3" aria-label="{{ __('ui.social') }}">@foreach(data_get($siteSettings ?? [], 'social', []) as $social)<a href="{{ $social['url'] }}" class="link text-sm" target="_blank" rel="noopener noreferrer">{{ $social['label'] }}</a>@endforeach</div><a href="https://awa.madematik.com" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex items-center gap-2 text-sm text-muted">aWa <x-icon name="external-link" class="h-4 w-4" /></a></div>
+            <div><p class="mb-4 text-sm font-semibold">{{ __('ui.other_connections') }}</p><nav class="flex flex-wrap gap-3" aria-label="{{ __('ui.social') }}">@foreach(data_get($siteSettings ?? [], 'social', []) as $social)<a href="{{ $social['url'] }}" class="link text-sm" target="_blank" rel="noopener noreferrer">{{ $social['label'] }}</a>@endforeach</nav><a href="https://awa.madematik.com" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex items-center gap-2 text-sm text-muted">aWa <x-icon name="external-link" class="h-4 w-4" /></a></div>
         </div>
         <div class="container-site mt-10 flex flex-wrap justify-between gap-4 border-t border-token pt-6 text-xs text-muted">
             <p>© {{ now()->year }} {{ data_get($siteSettings ?? [], 'footer.copyright', 'mADEMatik Solutions. '.__('ui.all_rights')) }}</p>

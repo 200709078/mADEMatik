@@ -1,6 +1,6 @@
 # Geliştirme durumu — 12 Ekim 2026
 
-İlk üç geliştirme aşaması uygulandı. Aşama 4 kapsamlı testleri ve canlı yayın başlatılmadı. Bu rapor, uygulamanın kapsamlı testlerden geçtiği veya üretime dağıtıldığı anlamına gelmez.
+İlk üç geliştirme aşaması tamamlandı. Kullanıcının “commit+push dan sonra kapsamlı testlere başla” talimatı üzerine başlangıç uygulaması `bbaa679` commit'i ile `main` dalına push edildi; ardından Aşama 4 yerel testleri çalıştırıldı ve bulunan sorunlar giderildi. Canlı yayın yapılmadı; bunun için ayrıca açık kullanıcı onayı gerekir.
 
 ## Aşama 1
 
@@ -37,15 +37,23 @@
 - Vite production build geçti; bütün derlenen Blade/PHP şablonları sözdizimi kontrolünden geçti.
 - Ana sayfa ve giriş sayfası HTTP 200 döndürdü; giriş formunda CSRF/parola alanı bulundu.
 - İlk ana sayfa ve admin ayarları şablonlarında bulunan Blade hataları geliştirmenin içinde giderildi.
-- Kapsamlı PHPUnit/E2E, mobil tarayıcı, erişilebilirlik/performans/güvenlik taraması, SMTP veya canlı regresyon testi yapılmadı.
+
+## Aşama 4 — yerel doğrulama
+
+- PHPUnit: **96 test, 926 assertion** başarılı. Her test yeni SQLite bellek veritabanında çalışır; mevcut geliştirme DB'si temizlenmez.
+- Saat & Sayaç: **10/10** Node testi başarılı; kalıcılık, duraklama/devam, bitiş, bozuk depolama ve geri alınan sistem saati kontrol edildi.
+- Chromium: **217/217** kontrol başarılı. Kamu sayfaları 320/390/768/1280/1920 px açık/koyu temalarda; üye ve yönetici ekranları, slider, mobil menü ve sayaç etkileşimleri doğrulandı. İncelenen ekranlarda axe WCAG 2 A/AA ve 2.1 AA ihlali veya JavaScript hatası bulunmadı.
+- Özel QA MariaDB: **12/12** kontrol başarılı. Migration, zorunlu yorum onayı, görünürlük, bildirim, commit sonrası kuyruk ve gerçek yerel worker/log mailer akışı doğrulandı. 45 örnek projeli liste isteği 9 sorgu kullandı.
+- Apache fixture: **17/17** kontrol başarılı. Yeni sahte fiziksel uygulama dizinleri `-d`/`-f` önceliğiyle Laravel fallback'ten korunuyor; kaynak uygulamalar kopyalanmadı.
+- Kayıt hukukî bağlantısı, hatalı dizi girdileri, JSON Türkçe arama, medya hata alanı, Alpine erişilebilirlik nitelikleri, sayaç dayanıklılığı ve dar yönetim başlığı düzeltildi. Veritabanı komutlarında gerçek bağlantı/sahiplik kontrolü ve son etkin Super User koruması güçlendirildi.
+- Ayrıntılı kapsam, ölçümler ve doğrulama sınırları [test sonuçlarında](test-results.md) kayıtlıdır.
 
 ## Açık kalanlar
 
-- Üyelik, moderasyon, bildirim/mail, admin CRUD ve sayaç davranışlarının uçtan uca doğrulanması Aşama 4 onayını bekliyor. Hafif kontroller bu akışların tamamının geçtiğini kanıtlamaz.
 - Kullanıcı güvenli Super User hesabını etkileşimli komutla oluşturabilir; gerçek iletişim adresini, biyografisini ve sosyal bilgilerini panelden tamamlayabilir.
 - Hukukî taslaklar veri sorumlusu/saklama/sağlayıcı bilgileriyle tamamlanmalı ve nihai inceleme görmelidir.
 - cPanel yolları, ayrı üretim DB'si, PHP/HTTPS, gerçek SMTP ve cron/worker ancak ayrıca onaylı canlı hazırlığında kesinleştirilebilir.
 - Bağımsız uygulama adresleri kullanıcı talimatı ve yerel dosya adlarına dayanır; gerçek sunucu dizinleri ve URL harf düzeni canlı erişim onayından sonra doğrulanmalıdır.
 - Kullanıcı hesabını kalıcı silmek kendi yorumlarını ve başka üyelerin bağlı yanıtlarını da cascade ile siler; kapsam yönetim arayüzünde açıkça belirtilir. Ayrı iletişim/audit kayıtları için saklama yükümlülükleri ayrıca değerlendirilir.
 
-Sonraki adım: [Aşama 4 test planı](stage-4-test-plan.md) için açık kullanıcı onayı. Kapsamlı test onayı canlı yayın onayı değildir.
+Sonraki sınır canlıya geçiştir. [Aşama 4 test planı](stage-4-test-plan.md) yerel doğrulamanın kapsamını, [operasyon belgesi](operations.md) ayrıca onay gerektiren yayın ve geri dönüş adımlarını içerir. Yerel testlerin geçmesi gerçek hosting, SMTP ve üretim dizinlerinin doğrulandığı anlamına gelmez.

@@ -10,7 +10,7 @@
                         <img src="{{ asset('assets/brand/'.$slide['image']) }}" width="1600" height="900" alt="" class="h-full w-full object-cover" @if($loop->first) fetchpriority="high" @else loading="lazy" @endif decoding="async">
                     </picture>
                     <div class="hero-shade" aria-hidden="true"></div>
-                    <div class="relative z-10 max-w-2xl p-7 pb-28 sm:p-12 sm:pb-28 lg:p-16 lg:pb-28">
+                    <div class="relative z-10 min-w-0 max-w-2xl p-7 pb-28 sm:p-12 sm:pb-28 lg:p-16 lg:pb-28">
                         <p class="mb-5 text-xs font-semibold uppercase tracking-[.16em] hero-description">{{ __('ui.portfolio') }}</p>
                         <h1 class="heading-hero">{{ $slide['title'] }}</h1>
                         <p class="hero-description mt-6 max-w-lg text-base leading-8 sm:text-lg">{{ $slide['description'] }}</p>

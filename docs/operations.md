@@ -120,3 +120,7 @@ Buradaki root, bağımsız fiziksel dizinleri aynı URL altında gerçekten suna
 Canlı onay öncesi hiçbir adım gerçek sunucu üzerinde uygulanmaz. Hostingin desteklediği deploy düzeni, SMTP ve hukukî metinlerin nihai kabulü açık kalan yayın ön koşullarıdır.
 
 Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde tam proje soketi ayrıca doğrulanır.
+
+DB koruması komutun gerçek `--database` seçimini de kontrol eder; `migrate:install` ve `schema:dump` aynı sahiplik kapsamındadır. Bağlantı hedefini gizlice değiştirebilecek `DB_URL` ve ayrı `read`/`write` bağlantıları desteklenmez. Parçalı `DB_*` ayarlarıyla tek, açık proje bağlantısı kullanılır. Test ortamında da yıkıcı komut engeli aktiftir.
+
+Vite derlemesi yayınlanan dizin üzerinde çalıştırılmaz. Derleme özel release alanında tamamlanır; yeni hash taşıyan varlıklar önce yüklenir, `manifest.json` aynı dosya sisteminde atomik yeniden adlandırmayla en son değiştirilir. Önceki varlıklar önbellekteki sayfalar için tutulur; geri dönüşte önceki manifest kullanılabilir. Ana public kökü veya bağımsız uygulama dizinleri silinmez. Yerel QA sırasında eşzamanlı build'in manifesti geçici kaldırabildiği gözlendiği için test koşusu ile build sırayla yürütülmelidir.

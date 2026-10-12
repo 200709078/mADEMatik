@@ -23,8 +23,10 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = $request->user();
-        $request->merge(['email' => Str::lower((string) $request->input('email'))]);
-        $data = $request->validate(['name' => ['required', 'string', 'min:2', 'max:100'], 'email' => ['required', 'email', 'max:254', Rule::unique('users', 'email')->ignore($user->id)], 'current_password' => ['required', 'current_password']]);
+        if (is_string($request->input('email'))) {
+            $request->merge(['email' => Str::lower($request->input('email'))]);
+        }
+        $data = $request->validate(['name' => ['required', 'string', 'min:2', 'max:100'], 'email' => ['bail', 'required', 'string', 'email', 'max:254', Rule::unique('users', 'email')->ignore($user->id)], 'current_password' => ['bail', 'required', 'string', 'current_password']]);
         $previousEmail = $user->email;
         $emailChanged = Str::lower($data['email']) !== $previousEmail;
         $user->fill(['name' => $data['name'], 'email' => Str::lower($data['email'])]);
@@ -44,7 +46,7 @@ class ProfileController extends Controller
 
     public function password(Request $request)
     {
-        $data = $request->validate(['current_password' => ['required', 'current_password'], 'password' => ['required', 'confirmed', Password::defaults()]]);
+        $data = $request->validate(['current_password' => ['bail', 'required', 'string', 'current_password'], 'password' => ['required', 'confirmed', Password::defaults()]]);
         $request->user()->forceFill(['password' => Hash::make($data['password']), 'remember_token' => Str::random(60)])->save();
         DB::table('sessions')->where('user_id', $request->user()->id)->where('id', '!=', $request->session()->getId())->delete();
         $request->session()->regenerate();
@@ -61,7 +63,7 @@ class ProfileController extends Controller
 
     public function requestDeletion(Request $request, NotificationService $notifications)
     {
-        $request->validate(['current_password' => ['required', 'current_password'], 'confirm_deletion' => ['accepted']]);
+        $request->validate(['current_password' => ['bail', 'required', 'string', 'current_password'], 'confirm_deletion' => ['accepted']]);
         $user = $request->user();
         if ($user->deletion_requested_at) { return back()->with('status', 'Silme talebiniz zaten değerlendirme sırasında.'); }
         $message = DB::transaction(function () use ($user) {

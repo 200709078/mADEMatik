@@ -50,5 +50,5 @@ return [
     'error_503_title' => 'A brief maintenance break', 'error_503_body' => 'The site is being updated. Please return later.',
     'admin_dashboard' => 'Overview', 'admin_categories' => 'Categories', 'admin_comments' => 'Comment Review', 'admin_users' => 'Members',
     'admin_contacts' => 'Contact Messages', 'admin_settings' => 'Site Settings', 'admin_activity' => 'Activity Log', 'view_site' => 'View Site',
-    'validation_title' => 'Please check your form details.', 'social' => 'Social links', 'screenshot' => 'Screenshot :number',
+    'validation_title' => 'Please check your form details.', 'social' => 'Social links', 'screenshot' => 'Screenshot :number', 'data_table' => 'Data table',
 ];

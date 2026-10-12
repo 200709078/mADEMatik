@@ -13,10 +13,11 @@ class CommentController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->input('status', 'pending');
+        $filters=$request->validate(['q'=>['nullable','string','max:100'],'status'=>['nullable','string',Rule::in(['pending','approved','rejected','hidden','all'])]]);
+        $status = $filters['status'] ?? 'pending';
         $query = Comment::with('user', 'project', 'parent')->latest();
         if (in_array($status, ['pending', 'approved', 'rejected', 'hidden'], true)) { $query->where('status', $status); }
-        if ($request->filled('q')) { $query->where('body', 'like', '%'.mb_substr($request->string('q'), 0, 100).'%'); }
+        if (($filters['q']??'')!=='') $query->where('body','like','%'.addcslashes($filters['q'],'%_\\').'%');
         return view('admin.comments.index', ['comments' => $query->paginate(20)->withQueryString(), 'status' => $status, 'reports' => CommentReport::with('comment', 'user')->where('status', 'open')->latest()->limit(30)->get()]);
     }
     public function update(Request $request, Comment $comment, ModerationService $moderation)

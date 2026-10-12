@@ -11,8 +11,9 @@ class ContactMessageController extends Controller
 {
     public function index(Request $request)
     {
+        $data = $request->validate(['status' => ['bail', 'nullable', 'string', Rule::in(['new', 'read', 'archived'])]]);
         $query = ContactMessage::latest();
-        if (in_array($request->input('status'), ['new', 'read', 'archived'], true)) { $query->where('status', $request->input('status')); }
+        if (isset($data['status'])) { $query->where('status', $data['status']); }
         return view('admin.contact-messages.index', ['messages' => $query->paginate(25)->withQueryString()]);
     }
     public function show(ContactMessage $contactMessage)

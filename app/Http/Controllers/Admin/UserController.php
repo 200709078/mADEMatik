@@ -7,24 +7,35 @@ use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $data = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
         $query = User::latest();
-        if ($request->filled('q')) { $term = mb_substr($request->string('q'), 0, 100); $query->where(fn ($q) => $q->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.$term.'%')); }
+        if (($data['q'] ?? '') !== '') { $term = addcslashes($data['q'], '%_\\'); $query->where(fn ($q) => $q->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.$term.'%')); }
         return view('admin.users.index', ['users' => $query->paginate(25)->withQueryString()]);
     }
     public function edit(User $user) { return view('admin.users.edit', compact('user')); }
     public function update(Request $request, User $user)
     {
         $data = $request->validate(['name' => ['required', 'string', 'min:2', 'max:100'], 'is_blocked' => ['nullable', 'boolean']]);
-        if ($user->id === $request->user()->id && $request->boolean('is_blocked')) { return back()->withErrors(['is_blocked' => 'Kendi hesabınızı engelleyemezsiniz.']); }
-        if (($user->role === 'super_user') && $request->boolean('is_blocked') && User::where('role', 'super_user')->where('is_blocked', false)->where('id', '!=', $user->id)->count() === 0) { return back()->withErrors(['is_blocked' => 'Son etkin Super User engellenemez.']); }
-        $user->forceFill(['name' => $data['name'], 'is_blocked' => $request->boolean('is_blocked')])->save();
-        if ($user->is_blocked) { DB::table('sessions')->where('user_id', $user->id)->delete(); }
-        ActivityLog::record('user.updated', $user, ['is_blocked' => $user->is_blocked]);
+        DB::transaction(function () use ($request,$user,$data) {
+            // Lock the complete role set in a stable order to prevent mutual blocking write skew.
+            $superUsers=User::where('role','super_user')->orderBy('id')->lockForUpdate()->get();
+            $actor=$superUsers->firstWhere('id',$request->user()->id);
+            abort_unless($actor?->isSuperUser(),403);
+            $target=$superUsers->firstWhere('id',$user->id) ?? User::lockForUpdate()->findOrFail($user->id);
+            $block=$request->boolean('is_blocked');
+            if ($target->id===$actor->id && $block) throw ValidationException::withMessages(['is_blocked'=>'Kendi hesabınızı engelleyemezsiniz.']);
+            $activeCount=$superUsers->filter(fn($candidate)=>!$candidate->is_blocked)->count();
+            if ($target->role==='super_user' && $block && $activeCount-($target->is_blocked?0:1)<1) throw ValidationException::withMessages(['is_blocked'=>'Son etkin Super User engellenemez.']);
+            $target->forceFill(['name'=>$data['name'],'is_blocked'=>$block])->save();
+            if ($block) DB::table('sessions')->where('user_id',$target->id)->delete();
+            ActivityLog::record('user.updated',$target,['is_blocked'=>$block]);
+        },3);
         return back()->with('status', 'Üye bilgileri güncellendi.');
     }
     public function destroy(Request $request, User $user)

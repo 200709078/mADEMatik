@@ -16,8 +16,9 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
+        $data = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
         $query = Project::with('category')->orderBy('sort_order')->latest();
-        if ($request->filled('q')) { $term = mb_substr($request->string('q'), 0, 100); $query->where(fn ($q) => $q->where('title', 'like', '%'.$term.'%')->orWhere('slug', 'like', '%'.$term.'%')); }
+        if (($data['q'] ?? '') !== '') { $term = addcslashes($data['q'], '%_\\'); $query->where(fn ($q) => $q->where('title->tr', 'like', '%'.$term.'%')->orWhere('slug', 'like', '%'.$term.'%')); }
         return view('admin.projects.index', ['projects' => $query->paginate(20)->withQueryString()]);
     }
     public function create() { return view('admin.projects.form', ['project' => new Project(['status' => 'developing', 'sort_order' => 0]), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }
@@ -45,7 +46,7 @@ class ProjectController extends Controller
         $project->is_featured = $request->boolean('is_featured');
         $project->technologies = array_values(array_filter(array_map('trim', explode(',', $data['technologies'] ?? ''))));
         $oldCover = $project->cover_path;
-        if ($request->hasFile('cover')) { $project->cover_path = $media->store($request->file('cover')); }
+        if ($request->hasFile('cover')) { $project->cover_path = $media->store($request->file('cover'), 'cover'); }
         elseif ($request->boolean('remove_cover')) { $project->cover_path = null; }
         $project->save();
         if ($oldCover && $oldCover !== $project->cover_path && str_starts_with($oldCover, 'media/')) { Storage::disk('public')->delete($oldCover); }

@@ -26,7 +26,7 @@ class CategoryController extends Controller
     }
     private function save(Request $request, ProjectCategory $category): void
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:100'], 'slug' => ['required', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('project_categories')->ignore($category->id)], 'sort_order' => ['required', 'integer', 'min:0', 'max:10000']]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:100'], 'slug' => ['bail', 'required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('project_categories')->ignore($category->id)], 'sort_order' => ['bail', 'required', 'integer', 'min:0', 'max:10000']]);
         $category->fill(['name' => array_replace((array) ($category->name ?? []), ['tr' => $data['name']]), 'slug' => $data['slug'], 'sort_order' => $data['sort_order']])->save();
     }
     public function destroy(ProjectCategory $category)

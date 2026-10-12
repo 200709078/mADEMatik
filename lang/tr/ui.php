@@ -50,5 +50,5 @@ return [
     'error_503_title' => 'Kısa bir bakım molası', 'error_503_body' => 'Site güncelleniyor. Lütfen daha sonra yeniden ziyaret edin.',
     'admin_dashboard' => 'Genel Bakış', 'admin_categories' => 'Kategoriler', 'admin_comments' => 'Yorum Onayları', 'admin_users' => 'Üyeler',
     'admin_contacts' => 'İletişim Mesajları', 'admin_settings' => 'Site Ayarları', 'admin_activity' => 'İşlem Kayıtları', 'view_site' => 'Siteyi Görüntüle',
-    'validation_title' => 'Lütfen form bilgilerini kontrol edin.', 'social' => 'Sosyal bağlantılar', 'screenshot' => ':number. ekran görüntüsü',
+    'validation_title' => 'Lütfen form bilgilerini kontrol edin.', 'social' => 'Sosyal bağlantılar', 'screenshot' => ':number. ekran görüntüsü', 'data_table' => 'Veri tablosu',
 ];

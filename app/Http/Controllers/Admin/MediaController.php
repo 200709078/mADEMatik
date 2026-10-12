@@ -13,7 +13,7 @@ class MediaController extends Controller
 {
     public function store(Request $request, Project $project, MediaService $media)
     {
-        $data = $request->validate(['image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:8192'], 'alt' => ['required', 'string', 'max:200'], 'sort_order' => ['required', 'integer', 'min:0', 'max:10000']]);
+        $data = $request->validate(['image' => ['bail', 'required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:8192'], 'alt' => ['required', 'string', 'max:200'], 'sort_order' => ['bail', 'required', 'integer', 'min:0', 'max:10000']]);
         $item = $project->media()->create(['path' => $media->store($request->file('image')), 'alt' => ['tr' => $data['alt']], 'sort_order' => $data['sort_order']]);
         ActivityLog::record('media.created', $item); return back()->with('status', 'Proje görseli eklendi.');
     }

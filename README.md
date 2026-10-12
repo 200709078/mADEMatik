@@ -60,8 +60,19 @@ Yerelde mail `log`, kuyruk `sync` kullanır. Üretim dışı ortamlarda gerçek 
 
 `/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` mevcut fiziksel yayın dizinleri korunur. aWa bağımsız olarak `https://awa.madematik.com` üzerinde çalışır; bu uygulama yalnızca bağlantı verir. Ortak oturum veya çapraz veritabanı bağlantısı kurulmaz.
 
-## Son aşama onayı
+## Testler ve yayın durumu
 
-İlk üç aşamada yalnızca sözdizimi/route, yerel derleme, yeni izole veritabanında migration ve bir veya iki smoke kontrolü yapılır. [Aşama 4 test planı](docs/stage-4-test-plan.md) kullanıcı açıkça onayladıktan sonra uygulanır. Kapsamlı test onayı canlıya yayın izni değildir; canlı yayın için ayrıca açık onay gerekir.
+İlk üç aşamadan sonra kullanıcı commit/push yapılmasını ve kapsamlı testlere başlanmasını onayladı. Yerel kapsamlı test sonuçları, giderilen bulgular ve doğrulanmamış canlı koşullar [test raporunda](docs/test-results.md) bulunur. Canlı sunucuya dağıtım yapılmadı; yayın için ayrıca açık onay gerekir.
+
+Hızlı ve bağımsız testler:
+
+```bash
+vendor/bin/phpunit
+npm run test:clock
+```
+
+PHPUnit her testte yeni SQLite `:memory:` şeması oluşturur; geliştirme verisini temizlemez. Mail fake/array ile kontrol edilir. `migrate:fresh` veya `db:wipe` kullanılmaz. Sayaç testleri tarayıcı depolaması, geçersiz süre ve zaman değişimi davranışlarını kapsar.
+
+MariaDB, tarayıcı ve fiziksel uygulama yönlendirme kontrolleri için [ayrı QA ortamı](docs/qa-environment.md) kullanılır. QA hesapları yalnız sahte `.test` adresleri ve rastgele parolalar içerir; gizli dosyaları paylaşmayın. Tarayıcı kontrolleri yalnız localhost'a bağlanır, diğer uygulamaların bağlantılarını ziyaret etmez. Sistem Chromium ve Apache/PHP modülü yerel geniş kontroller için gerekir; bu araçların kurulumu başka projelerde yapılmaz. Vite derlemesini tarayıcı testlerinden önce tamamlayın, aynı anda çalıştırmayın.
 
 Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde tam proje soketi ayrıca doğrulanır.

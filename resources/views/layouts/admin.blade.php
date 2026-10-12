@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" data-theme="light">
-<head>@include('layouts.head')<meta name="robots" content="noindex,nofollow"></head>
+<head>@include('layouts.head')</head>
 <body>
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 button button-primary">{{ __('ui.skip') }}</a>
     <div class="admin-grid" x-data="{navigationOpen:false}">
         <aside class="admin-sidebar">
             <div class="flex items-center justify-between gap-3">
-                <a href="{{ route('admin.dashboard') }}"><img src="{{ asset('assets/brand/logos/logo-header-light.png') }}" alt="mADEMatik Solutions" width="200" height="53" class="theme-logo-light w-48"><img src="{{ asset('assets/brand/logos/logo-header-dark.png') }}" alt="mADEMatik Solutions" width="200" height="53" class="theme-logo-dark w-48"></a>
+                <a href="{{ route('admin.dashboard') }}"><x-brand-logo class="w-48" /></a>
                 <button type="button" class="button button-ghost button-icon lg:hidden" @click="navigationOpen=!navigationOpen" :aria-expanded="navigationOpen" aria-controls="admin-navigation" aria-label="{{ __('ui.menu') }}"><x-icon name="menu" /></button>
             </div>
             <p class="eyebrow mt-6 mb-4 hidden lg:block">{{ __('ui.admin') }}</p>
@@ -20,7 +20,7 @@
             </nav>
         </aside>
         <div class="min-w-0">
-            <header class="surface flex min-h-19 items-center justify-between gap-4 border-b border-token px-5 sm:px-8"><p class="text-sm font-medium">{{ auth()->user()->name }}</p><div class="flex items-center gap-2"><x-theme-toggle /><x-notification-bell /><x-ui.button :href="route('profile.edit')" variant="ghost" size="sm">{{ __('ui.profile') }}</x-ui.button><form action="{{ route('logout') }}" method="POST">@csrf<x-ui.button type="submit" variant="ghost" class="button-icon" :aria-label="__('ui.logout')"><x-icon name="log-out" /></x-ui.button></form></div></header>
+            <header class="surface flex min-h-19 items-center justify-between gap-4 border-b border-token px-5 sm:px-8"><p class="min-w-0 flex-1 truncate text-sm font-medium" title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</p><div class="flex shrink-0 items-center gap-2"><x-theme-toggle /><x-notification-bell /><x-ui.button :href="route('profile.edit')" variant="ghost" size="sm">{{ __('ui.profile') }}</x-ui.button><form action="{{ route('logout') }}" method="POST">@csrf<x-ui.button type="submit" variant="ghost" class="button-icon" :aria-label="__('ui.logout')"><x-icon name="log-out" /></x-ui.button></form></div></header>
             @include('layouts.flash')
             <main id="main-content" tabindex="-1" class="admin-content">@yield('content')</main>
         </div>
