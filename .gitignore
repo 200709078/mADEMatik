@@ -1,14 +1,15 @@
 *.log
 .DS_Store
-.env
-.env.backup
-.env.production
+.directory
+.env*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.codex
 /.cursor/
 /.idea
 /.nova
+/.opencode/
 /.phpunit.cache
 /.vscode
 /.zed
@@ -19,12 +20,18 @@
 /public/hot
 /public/storage
 /storage/*.key
+*.key
+*.pem
 /storage/pail
 /vendor
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+*~
+*.swp
+*.swo
+*.bak
 
 /.local/
 /storage/runtime/
