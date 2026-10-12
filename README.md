@@ -49,6 +49,20 @@ Veritabanı MariaDB/MySQL uyumludur. Yerel sunucu yalnızca `storage/runtime/mar
 
 Veri dizini gerçekten yeni ve boşsa başlangıç betiği MariaDB sistem tablolarını oluşturur ve `php artisan madematik:initialize-local-db` ile yalnız uygulamanın yeni DB/kullanıcısını hazırlar. Var olan dolu dizini tekrar kurmaz. PID ve özel veri/soket yolları doğrulanmadan çalışan bir süreç durdurulmaz.
 
+## Adminer bağlantısı
+
+Adminer'de yalnız `localhost` yazmak sistemin MariaDB soketini seçer. mADEMatik kullanıcı bilgileri projenin özel MariaDB örneğine aittir. Adminer aynı proje kullanıcısıyla çalışmalıdır; soket dizininin izinleri başka servis kullanıcılarına açılmaz.
+
+Mevcut yerel Adminer için `http://localhost:8080/adminer.php?ext=pdo` açılır. Giriş alanları:
+
+- Sistem: MySQL / MariaDB.
+- Sunucu: `localhost:/home/madematik/Belgeler/mADEMatik/storage/runtime/mariadb.sock` (başka yerel proje yolunda tam soket yolunu kullanın).
+- Kullanıcı: `.env` içindeki `DB_USERNAME`.
+- Parola: `.env` içindeki `DB_PASSWORD`; paylaşılmaz veya depoya yazılmaz.
+- Veritabanı: `.env` içindeki `DB_DATABASE`.
+
+Kurulu Adminer 5.2.1'in MySQLi sürücüsü özel soket yolunu doğru aktarmadığından `ext=pdo` seçilir; [ilgili sürümün kaynak kodu](https://raw.githubusercontent.com/vrana/adminer/v5.2.1/adminer/drivers/mysql.inc.php) PDO bağlantısının bu biçimi desteklediğini gösterir. Parola sıfırlama, sistem MariaDB'sine kullanıcı ekleme veya mevcut uygulamaların ayarlarını değiştirme gerekmez. Önce `php artisan serve` ile özel DB hazır olmalıdır.
+
 ## Sayfalar ve yönetim
 
 Ana sayfa, Hakkımda, Projelerim ve detayları, Yorumlar, Saat & Sayaç, İletişim, üyelik/profil/bildirim sayfaları ve yalnızca Super User erişimine açık `/admin` bulunur. Yönetim panelinden proje, kategori, medya, slider, sayfa/site ayarları, yorum, üye ve iletişim yönetimi yapılır.
