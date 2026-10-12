@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title',$category->exists ? 'Kategoriyi Düzenle' : 'Kategori Ekle')
+@section('content')
+<h1 class="heading-page mb-6">{{ $category->exists ? 'Kategoriyi düzenle' : 'Yeni kategori' }}</h1><x-ui.card class="max-w-xl"><form method="POST" action="{{ $category->exists ? route('admin.categories.update',$category) : route('admin.categories.store') }}" class="space-y-5">@csrf @if($category->exists) @method('PUT') @endif<x-ui.input name="name" label="Türkçe kategori adı" :value="$category->translated('name')" required maxlength="100"/><x-ui.input name="slug" label="Adres adı" :value="$category->slug" required help="Küçük İngilizce harfler, rakamlar ve tire kullanın."/><x-ui.input name="sort_order" label="Sıralama" type="number" :value="$category->sort_order ?? 0" min="0" required/><div class="flex gap-3"><x-ui.button type="submit">Kaydet</x-ui.button><x-ui.button variant="ghost" :href="route('admin.categories.index')">Vazgeç</x-ui.button></div></form></x-ui.card>
+@endsection
