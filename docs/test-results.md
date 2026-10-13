@@ -133,7 +133,18 @@ Kaynak **19 InnoDB tablo**, veri/indeks alanı **770.048 bayt (752 KiB)** içeri
 - Adminer `Sunucu: 127.0.0.1`: yeni DB görünür ve **19 tablo**, **0 hata**. Varsayılan Adminer ve PDO adresi çalışır; TCP'de `ext=pdo` zorunlu değildir.
 - PHP sözdizimi ve sahte bağlantı yapılandırması korumaları kontrol edildi; kapsamlı test, gerçek SMTP ve canlı dağıtım yapılmadı.
 
-Sırlar yalnız özel `.env` ve Git dışında 0600 bağlantı/yedek dosyalarındadır. Dump, önceki `.env` ve karşılaştırma raporları `.local/db-transfer-20261013-d2199075/` altında korunur. Eski izole MariaDB ve `storage/runtime/mariadb` verisi korundu; durdurma için kullanıcının ayrı kararı beklenir. Eski kaynak artık taşıma anındaki kopyadır; sonraki yazımlar TCP hedefine gider. Geri dönüş değerlendirilirse önce yeni hedefteki son veriler korunmalıdır. Sistem sunucusunda `DROP`, `migrate:fresh`, `db:wipe` veya diğer mevcut DB'lere yönelik değişiklik yapılmadı. Commit/push yapılmadı.
+Sırlar yalnız özel `.env` ve Git dışında 0600 bağlantı/yedek dosyalarındadır. Dump, önceki `.env` ve karşılaştırma raporları `.local/db-transfer-20261013-d2199075/` altında korunur. Eski izole MariaDB doğrulama sonrası açık kullanıcı onayıyla güvenli biçimde durduruldu; `storage/runtime/mariadb` verisi ve yedekler korunur. Sistem servisi açık ve otomatik başlangıcı etkin durumdaydı; ayarları değiştirilmedi. Eski süreç kapandıktan sonra TCP bağlantısı tekrar doğrulandı. Eski kaynak artık taşıma anındaki kopyadır; sonraki yazımlar TCP hedefine gider. Geri dönüş değerlendirilirse önce yeni hedefteki son veriler korunmalıdır. Sistem sunucusunda `DROP`, `migrate:fresh`, `db:wipe` veya diğer mevcut DB'lere yönelik değişiklik yapılmadı. Bu işlemler sırasında Codex commit/push yapmadı.
+
+## Merkezi toast bildirimleri — 13 Ekim 2026
+
+aWa yaklaşımı yalnız salt okunur incelenerek Blade/Alpine için ortak toast bileşeni geliştirildi. Frontend/admin geçici başarı, hata, uyarı, bilgi ve form hata özetleri üst sağda, mevcut renk/tema/tokenlarıyla gösterilir. Başarı/bilgi 6 saniye, uyarı 8 saniye sonra kapanır; hata kalıcıdır. Hover/klavye odağı birbirinden bağımsız süre duraklatır, kapatma/Escape ve odak dönüşü desteklenir. Metinler JSON/`x-text` ile güvenle aktarılır; HTML işlenmez. Alan hataları ve kalıcı açıklamalar korunur; JavaScript kapalıysa sunucu mesajları okunabilir.
+
+- Vite derlemesi ve JS/PHP sözdizimi başarılı.
+- **29/29 hedefli tarayıcı kontrolü**: gerçek frontend/admin layout'larında başarı/hata/çoklu doğrulama, dört olay tipi, kapatma, otomatik kapanma, kalıcı hata, hover/odak duraklatma, XSS metni, 320/390/1280 px açık/koyu tema ve azaltılmış hareket.
+- JavaScript hatası, HTTP hatası ve dış ağ isteği **0**. Son görsel kontrolde gölge kırpılması düzeltilip iki ilgili ekran tekrar doğrulandı.
+- Fixture sunucusu gerçek `.env` dosyasını yüklemez; sadece her istekte yeni SQLite `:memory:` şeması ve sahte kullanıcı kullanır. Sistem/QA/diğer proje veritabanlarına yazılmaz; geniş test paketi çalıştırılmaz.
+
+Yerel kanıtlar Git dışında `.local/toast-qa/` altında bulunur. aWa dosyaları değiştirilmedi; bu çalışmada Codex commit/push veya canlı dağıtım yapmadı.
 
 ## Yayından önce kalanlar
 

@@ -51,4 +51,6 @@ return [
     'admin_dashboard' => 'Overview', 'admin_categories' => 'Categories', 'admin_comments' => 'Comment Review', 'admin_users' => 'Members',
     'admin_contacts' => 'Contact Messages', 'admin_settings' => 'Site Settings', 'admin_activity' => 'Activity Log', 'view_site' => 'View Site',
     'validation_title' => 'Please check your form details.', 'social' => 'Social links', 'screenshot' => 'Screenshot :number', 'data_table' => 'Data table',
+    'toast_success' => 'Action completed', 'toast_error' => 'Action could not be completed', 'toast_warning' => 'Attention', 'toast_info' => 'Information',
+    'toast_region' => 'Status notifications', 'toast_close' => 'Dismiss notification',
 ];

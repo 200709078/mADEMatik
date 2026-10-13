@@ -1,9 +1,12 @@
 import { createClockTool } from './clock';
+import { createToastStack } from './toasts';
 import Alpine from 'alpinejs';
 import { createIcons, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity } from 'lucide';
 
 const iconSet = { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity };
 const refreshIcons = () => createIcons({ icons: iconSet, attrs: { 'stroke-width': 1.7 } });
+
+Alpine.data('toastStack', initial => createToastStack(initial, refreshIcons));
 
 Alpine.store('theme', {
     mode: 'system',

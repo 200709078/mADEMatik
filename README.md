@@ -34,7 +34,7 @@ Migration komutu yalnızca yeni mADEMatik veritabanına yönelmelidir. Mevcut ta
 
 Veritabanı MariaDB/MySQL uyumludur. Kullanıcı onaylı yerel TCP istisnası yalnız yukarıdaki adres/port, `madematik_v2` ve `madematik_v2_user` için geçerlidir; sahiplik, `DB_URL`/ayrı okuma-yazma hedefi ve yıkıcı komut korumaları sürer. aWa, eski ana site ve diğer uygulama veritabanlarına bu kullanıcıyla erişilemez.
 
-Eski `storage/runtime/mariadb.sock` ve `storage/runtime/mariadb/` taşımanın kaynak örneğidir; veri ve yedekler korunur. `scripts/dev-database.sh` yalnız bu eski özel örneği yönetir; güncel TCP bağlantısını veya [ayrı QA ortamını](docs/qa-environment.md) yönetmez. Eski örnek açık kullanıcı onayı olmadan durdurulmaz veya silinmez. Kaynak artık taşıma anındaki kopyadır; geri dönüş, hedefe sonradan yazılan veriler ayrıca yedeklenip değerlendirildikten sonra onayla planlanır. Otomatik geri dönüş yapılmaz.
+Eski `storage/runtime/mariadb.sock` ve `storage/runtime/mariadb/` taşımanın kaynak örneğidir; süreç 13 Ekim 2026'da kullanıcı onayıyla durduruldu, veri dizini ve yedekler korundu. `scripts/dev-database.sh` yalnız bu eski özel örneği yönetir; güncel TCP bağlantısını veya [ayrı QA ortamını](docs/qa-environment.md) yönetmez. Kaynak artık taşıma anındaki kopyadır; geri dönüş, hedefe sonradan yazılan veriler ayrıca yedeklenip değerlendirildikten sonra onayla planlanır. Otomatik geri dönüş yapılmaz.
 
 ## Adminer bağlantısı
 
@@ -60,6 +60,8 @@ Hesap/veri silme talebi profilden yöneticiye iletilir. Yönetici ayrıca onayla
 
 Tema işletim sistemi tercihinden başlar ve kullanıcının seçimini tarayıcıda saklar. Saat & Sayaç gerçek yerel zamanı gösterir; geri sayımın başlangıç/bitiş bilgileri ve duraklama durumu tarayıcıda kalıcıdır.
 
+Geçici işlem mesajları frontend ve admin'de aynı toast bileşenini kullanır. Başarı/bilgi mesajları 6 saniye, uyarılar 8 saniye sonra kapanır; hatalar elle kapatılır. Üzerine gelme ve klavye odağı süreyi durdurur. Tasarım ortak tema/tokenlarıyla uyumludur; azaltılmış hareket tercihi ve ekran okuyucu bildirimleri desteklenir. Kalıcı açıklamalar ve alan doğrulama mesajları ilgili içerikle birlikte kalır. JavaScript olayları için `madematik-toast` kullanılır; mesajlar HTML olarak çalıştırılmaz.
+
 ## Görseller, mail ve bağımsız uygulamalar
 
 Onaylı raster marka paketi `public/assets/brand/` altında kullanılır. MS sembolü yeniden çizilmez. Kaynak dosya bilgileri ve SHA256 doğrulaması [referans notlarında](docs/reference-notes.md) bulunur.
@@ -72,7 +74,7 @@ Yerelde mail `log`, kuyruk `sync` kullanır. Üretim dışı ortamlarda gerçek 
 
 İlk üç aşamadan sonra kullanıcı commit/push yapılmasını ve kapsamlı testlere başlanmasını onayladı. Yerel kapsamlı test sonuçları, giderilen bulgular ve doğrulanmamış canlı koşullar [test raporunda](docs/test-results.md) bulunur. Canlı sunucuya dağıtım yapılmadı; yayın için ayrıca açık onay gerekir.
 
-Kullanıcının sonraki talimatı gereği yeni bir açık istek olmadan commit veya push yapılmaz. Profil fotoğrafı değişiklikleri henüz commit edilmedi.
+Kullanıcının sonraki talimatı gereği yeni bir açık istek olmadan commit veya push yapılmaz.
 
 Hızlı ve bağımsız testler:
 

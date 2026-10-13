@@ -51,4 +51,6 @@ return [
     'admin_dashboard' => 'Genel Bakış', 'admin_categories' => 'Kategoriler', 'admin_comments' => 'Yorum Onayları', 'admin_users' => 'Üyeler',
     'admin_contacts' => 'İletişim Mesajları', 'admin_settings' => 'Site Ayarları', 'admin_activity' => 'İşlem Kayıtları', 'view_site' => 'Siteyi Görüntüle',
     'validation_title' => 'Lütfen form bilgilerini kontrol edin.', 'social' => 'Sosyal bağlantılar', 'screenshot' => ':number. ekran görüntüsü', 'data_table' => 'Veri tablosu',
+    'toast_success' => 'İşlem tamamlandı', 'toast_error' => 'İşlem tamamlanamadı', 'toast_warning' => 'Dikkat', 'toast_info' => 'Bilgilendirme',
+    'toast_region' => 'Durum bildirimleri', 'toast_close' => 'Bildirimi kapat',
 ];
