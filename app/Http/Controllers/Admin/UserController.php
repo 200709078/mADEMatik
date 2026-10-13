@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Comment;
 use App\Models\User;
+use App\Services\AvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -38,17 +39,24 @@ class UserController extends Controller
         },3);
         return back()->with('status', 'Üye bilgileri güncellendi.');
     }
-    public function destroy(Request $request, User $user)
+    public function destroy(Request $request, User $user, AvatarService $avatars)
     {
         $request->validate(['confirm_delete' => ['accepted']]);
         if ($user->id === $request->user()->id || ($user->role === 'super_user')) { return back()->withErrors(['user' => 'Super User hesapları bu ekrandan silinemez.']); }
-        DB::transaction(function () use ($user) {
-            ActivityLog::record('user.deleted', $user, ['comments_deleted' => $user->comments()->count()]);
-            DB::table('sessions')->where('user_id', $user->id)->delete();
-            DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-            $user->notifications()->delete();
-            $user->delete();
+        $avatarPath = DB::transaction(function () use ($request, $user) {
+            // Read the final photo while holding the same row lock used during uploads.
+            $target = User::lockForUpdate()->findOrFail($user->getKey());
+            abort_if($target->id === $request->user()->id || $target->role === 'super_user', 403);
+            $avatarPath = $target->avatar_path;
+            ActivityLog::record('user.deleted', $target, ['comments_deleted' => $target->comments()->count()]);
+            DB::table('sessions')->where('user_id', $target->id)->delete();
+            DB::table('password_reset_tokens')->where('email', $target->email)->delete();
+            $target->notifications()->delete();
+            $target->delete();
+
+            return $avatarPath;
         });
+        DB::afterCommit(fn () => $avatars->deleteStored($avatarPath));
         return redirect()->route('admin.users.index')->with('status', 'Üye hesabı, yorumları ve bağlı yanıtlar silindi. İletişim ve işlem kayıtlarındaki kişisel verileri ayrıca değerlendirin.');
     }
 }

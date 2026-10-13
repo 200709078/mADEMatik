@@ -4,23 +4,24 @@ Bu belge bir işletim planıdır. Üretim sunucusu, domain, DNS, cPanel, SSL ve 
 
 ## Yeni uygulamanın veritabanı
 
-Yerel özel MariaDB örneği yalnızca bu proje için oluşturulur:
+Güncel yerel bağlantı sistem MariaDB sunucusundadır:
 
-- Veri dizini: `storage/runtime/mariadb/`.
-- Unix soketi: `storage/runtime/mariadb.sock`; `--skip-networking` ile TCP erişimi yoktur.
-- Veritabanı: `madematik_v2`; ayrı kullanıcı: `madematik_v2_user`.
-- İşletim: `./scripts/dev-database.sh start`, `status` ve `stop`.
-- Kimlik bilgileri yalnızca `.env` dosyasında tutulur. Runtime, `.env`, yüklenen medya ve yedekler sürüm kontrolüne alınmaz.
+- TCP adresi: `127.0.0.1:3306`; `.env` içinde `DB_SOCKET` boştur ve `APP_ENV=local` korunur.
+- Ayrı veritabanı: `madematik_v2`; yeni hesap: `madematik_v2_user@127.0.0.1`.
+- Hesabın yetkisi yalnız `madematik_v2.*` üzerindedir; aWa, `madematik_com` ve diğer mevcut uygulama veritabanları/kullanıcıları değiştirilmedi.
+- Kimlik bilgileri yalnız `.env` ve erişimi sınırlı yerel yedeklerde kalır. Runtime, `.env`, yüklenen medya ve yedekler sürüm kontrolüne alınmaz.
 
-Yerel `php artisan serve` öncesinde `LocalDatabase` konsol dinleyicisi mevcut özel MariaDB'yi açar ve soket hazır olmadan web sunucusunu başlatmaz. Yalnız `APP_ENV=local`, güvenli DB adı/kullanıcı/sahiplik ve tam geliştirme soketi kabul edilir; URL/read-write hedefleri ve QA soketi reddedilir. Mevcut sistem tablo dizini yoksa otomatik ilk kurulum yapılmaz; migration/seed veya `.env` değişimi tetiklenmez. QA/testing/production ve diğer Artisan komutlarında bu davranış devre dışıdır.
+13 Ekim 2026 taşımasında 19 InnoDB tablosunun tamamı kaynak/hedef satır sayıları ve SHA256 içerik özetiyle eşit bulundu. `migrate:status` dört migration için `Ran` verdi. Geçici array oturum/önbellek kullanan salt okunur HTTP kontrolü ana sayfada 200 aldı; DB oturum/önbellek verileri değişmedi. Sistem sunucusuna bağlanan Adminer'da yeni veritabanı ve 19 tablo görüldü. Sistemde `migrate:fresh`, `db:wipe` veya `DROP` çalıştırılmadı.
 
-Özel süreç sistemin MariaDB servisi değildir; bilgisayar kapanınca durur. [MariaDB systemd belgesi](https://mariadb.com/docs/server/server-management/starting-and-stopping-mariadb/systemd) sistem servisini açılışta başlatma davranışını açıklar. Bu proje için sistem servisi veya kullanıcı oturum ayarları değiştirilmez. Başlatma betiği `setsid` ile ayrı oturum açar; web terminalinin kapanması DB'yi durdurmaz. Kapanmadan kalan soket yalnız kernelde kullanılmadığı ve sahip PID'nin çalışmadığı doğrulanınca temizlenebilir; belirsiz aktif soket/PID korunur.
+Kullanıcı onaylı dar TCP istisnası `DatabaseSafety` içinde yalnız `APP_ENV=local`, boş soket, tam `127.0.0.1:3306`, `madematik_v2` ve `madematik_v2_user` için geçerlidir. `DB_OWNERSHIP` eşleşmesi, root hesap yasağı ve `DB_URL`/ayrı `read`-`write` hedef korumaları sürer. `LocalDatabase`, sahiplik denetiminden sonra TCP bağlantısında özel örneği başlatmadan çıkar; sistem servisini başlatmaz, durdurmaz veya yapılandırmaz. Sistem MariaDB servisi uygulama açılmadan önce çalışıyor olmalıdır. Özel/QA soket denetimleri ve yıkıcı komut yasakları korunmuştur.
 
-Başlatma/bitiş betiği yalnızca kendi soket/PID/veri dizinini hedefler; sistem MariaDB servisini durdurmaz. Kapatmadan önce PID'nin yürütücüsü ve tam özel datadir/socket argümanları doğrulanır; yalnız TERM gönderilir. Veri dizini, soket veya PID belirsizliğinde çalışmaya devam edilmez. Yalnız yeni boş veri dizini `mariadb-install-db --auth-root-authentication-method=normal --skip-test-db` ile hazırlanır; ardından `php artisan madematik:initialize-local-db` yeni uygulamanın ayrı DB/kullanıcısını oluşturur. Mevcut dolu dizine tekrar kurulum uygulanmaz.
+Eski kaynak örnek `storage/runtime/mariadb/` veri dizini ve `storage/runtime/mariadb.sock` üzerinden `--skip-networking` ile çalışır. Taşıma sonrasında veri dizini, yedekler ve çalışan örnek korundu; açık kullanıcı onayı olmadan durdurma veya silme yapılmaz. `scripts/dev-database.sh` yalnız bu eski özel örneği yönetir, sistem MariaDB servisini veya [ayrı QA ortamını](qa-environment.md) yönetmez. Eski soket yeniden seçilirse mevcut otomatik özel örnek başlatma davranışı devam eder; betik PID/yürütücü/veri/soket yollarını doğrulamadan süreç durdurmaz. Dolu dizinde ilk kurulum komutu tekrar çalıştırılmaz.
 
-Migration güvenlik denetimi varsayılan veya sahipliği doğrulanmamış veritabanına yazmayı engeller. Yerelde `DB_OWNERSHIP=madematik_v2`, seçilen DB adı ve projeye ait tam Unix soketi doğrulanır; başarısız denetimi aşmak için başka bir projeden ayar kopyalanmaz.
+Eski kaynak artık taşıma anındaki kopyadır. Hedefe sonradan yazılan verileri kaybetmemek için geri dönüşten önce güncel hedef ve medya yedeklenir, farklılıklar değerlendirilir ve açık onay alınır. `.env` otomatik eski sokete çevrilmez; eski kaynağın güncel hedef üzerine geri yüklenmesi veya hedefin silinmesi bu planın otomatik adımı değildir.
 
-`php artisan migrate --seed` yalnızca yeni izole mADEMatik veritabanında ilk kurulum için kullanılır. Mevcut veritabanlarında `migrate:fresh` ve `db:wipe` kullanılmaz. Seed gerçek kullanıcı/admin hesapları eklemez. Yeni yönetici `php artisan madematik:create-super-user` etkileşimli komutuyla oluşturulur; otomatik veya raporda yazılı parola yoktur.
+`php artisan migrate --seed` yalnız yeni, bu projeye ait boş veritabanında ilk kurulum içindir; taşınmış mevcut veritabanında tekrarlanmaz. Seed gerçek kullanıcı/admin hesapları eklemez. Yeni yönetici `php artisan madematik:create-super-user` etkileşimli komutuyla oluşturulur; otomatik veya raporda yazılı parola yoktur.
+
+Yerel Adminer `http://localhost:8080/adminer.php` adresinden açılır. Sistem MySQL/MariaDB, sunucu `127.0.0.1`, veritabanı `madematik_v2` seçilir; kullanıcı/parola `.env` içindeki `DB_USERNAME`/`DB_PASSWORD` alanlarından alınır ve paylaşılmaz. TCP için özel soket veya `ext=pdo` gerekmez. Proje hesabının diğer uygulama veritabanlarında yetkisi yoktur.
 
 Üretimde cPanel'in oluşturduğu yeni veritabanı ve yalnızca bu veritabanına yetkili ayrı kullanıcı kullanılmalıdır. cPanel hesap önekleri yerel adlardan farklı olabilir; hedef ad ve sahiplik onaylı kurulum sırasında açıkça doğrulanır. aWa veya eski ana site veritabanı adı/hesabı hiçbir bağlantıda kullanılmaz.
 
@@ -35,8 +36,9 @@ Migration güvenlik denetimi varsayılan veya sahipliği doğrulanmamış verita
 | `APP_URL` | `http://127.0.0.1:8000` | Onaylanmış HTTPS ana adres |
 | `APP_LOCALE`, `APP_FALLBACK_LOCALE` | `tr` | Türkçe varsayılan; EN yayınlanmaz |
 | `DB_CONNECTION` | `mysql` | Ayrı MariaDB/MySQL |
-| `DB_SOCKET` | Proje özel Unix soketi | Hosting bağlantısına göre |
-| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Yalnız proje örneği | Yeni DB ve sınırlı ayrı kullanıcı |
+| `DB_HOST`, `DB_PORT` | `127.0.0.1`, `3306` | Hosting bağlantısına göre |
+| `DB_SOCKET` | Boş; TCP kullanılır | Hosting bağlantısına göre |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | `madematik_v2`, ayrı proje hesabı ve gizli parola | Yeni DB ve sınırlı ayrı kullanıcı |
 | `DB_OWNERSHIP` | `madematik_v2` sahiplik işareti | Yeni DB hedefi onaylı kurulumda doğrulanır |
 | `MAIL_MAILER` | `log` | Onaylı gerçek SMTP |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME` | Gerçek SMTP kullanılmaz | Hosting/SMTP sağlayıcısının değerleri |
@@ -48,11 +50,19 @@ Migration güvenlik denetimi varsayılan veya sahipliği doğrulanmamış verita
 
 Kurumsal iletişim adresi ve sosyal bağlantılar başlangıçta boş olabilir; yönetici gerçek bilgileri panelden girmelidir. Varsayımsal adres veya kişisel biyografi üretim bilgisi olarak kullanılmaz. Hukukî metinler taslaktır ve yayın öncesi kullanıcı tarafından gözden geçirilmelidir.
 
+## Profil fotoğrafı ve şema
+
+`users.avatar_path` nullable alanı kullanıcının isteğiyle özgün `0001_01_01_000000_create_users_table.php` migration'ına eklenmiştir; yeni bir ekleme migration'ı yoktur. Başlangıç migration'ı uygulanmış veritabanında dosyayı düzenlemek alanı kendiliğinden oluşturmaz. Mevcut proje yerel veritabanı, özel soket/veri dizini/sahiplik doğrulaması ve özel kullanıcı yedeği ardından yalnız bu nullable alan eklenerek uyumlu hale getirildi. Önceki kullanıcı alanları işlem öncesi/sonrası karşılaştırılarak korundu; sıfırlama, tekrar seed veya migration geçmişi değişimi yapılmadı.
+
+Fotoğraflar `storage/app/public/avatars/` altında rastgele UUID adlarıyla WebP olarak saklanır; doğru `public/storage` bağlantısı gereklidir. Yalnız JPG/PNG/WebP raster girdileri kabul edilir; 2 MB, 4096 piksel kenar ve 12 megapiksel sınırları uygulanır. Yeniden kodlama metadata ve dosyaya eklenmiş içeriği kaldırır. Kullanıcı yalnız kendi fotoğrafını yönetebilir; dosya yolu istekten alınmaz. Değiştirme/kaldırma ve hesap silme sırasında önce DB işlemi tamamlanır, ardından eski fotoğraf temizlenir; DB başarısızlığında mevcut fotoğraf korunur.
+
+Onaylı hosting hazırlığında GD ve WebP kodlama desteği, yazılabilir public disk ve storage bağlantısı doğrulanır. `upload_max_filesize` en az 2 MB, `post_max_size` form ek yükünü karşılayacak kadar büyük olmalıdır. `memory_limit`, 12 megapiksel girdinin çözülmesi ve JPEG yön düzeltmesinin eşzamanlı görüntü tamponları için değerlendirilir. EXIF eklentisi varsa telefon JPEG'lerinin yönü düzeltilir; bu destek yoksa yön bilgisi uygulanmaz. Mevcut hosting yapılandırması bu çalışma kapsamında değiştirilmedi.
+
 ## Hesap ve kişisel veri silme
 
 Profildeki silme talebi mevcut parola ve ayrı onay kutusuyla yöneticiye iletilir; talep hesabı hemen silmez. Super User talebi ve saklama koşullarını değerlendirir, üye ekranındaki ayrıca onaylanan kalıcı silme işlemini uygular. Super User hesapları bu ekrandan silinemez.
 
-Mevcut uygulama anonimleştirme yapmaz: kullanıcı hesabı silindiğinde ona ait yorumlar ve bu yorumlara bağlı yanıtlar foreign key cascade ile kalıcı silinir. Bağlı yanıtların başka üyeler tarafından yazılmış olması bu sonucu değiştirmez. Yorum şikâyetleri ve bildirim tercihleri de ilişkilerine göre silinir; kullanıcıya ait site bildirimleri, oturumlar ve parola sıfırlama kaydı açıkça temizlenir. Ayrı iletişim mesajları ve işlem kayıtları otomatik tam kişisel veri temizliği sayılmaz; yönetici bunlardaki bilgileri ve saklama yükümlülüklerini ayrıca değerlendirmelidir. Yönetici onayından önce bu silme kapsamı gözden geçirilmelidir.
+Mevcut uygulama anonimleştirme yapmaz: kullanıcı hesabı silindiğinde ona ait yorumlar ve bu yorumlara bağlı yanıtlar foreign key cascade ile kalıcı silinir. Bağlı yanıtların başka üyeler tarafından yazılmış olması bu sonucu değiştirmez. Yorum şikâyetleri ve bildirim tercihleri de ilişkilerine göre silinir; kullanıcıya ait site bildirimleri, oturumlar ve parola sıfırlama kaydı açıkça temizlenir. Profil fotoğrafı DB işlemi başarıyla tamamlandıktan sonra public diskten kaldırılır. Ayrı iletişim mesajları ve işlem kayıtları otomatik tam kişisel veri temizliği sayılmaz; yönetici bunlardaki bilgileri ve saklama yükümlülüklerini ayrıca değerlendirmelidir. Yönetici onayından önce bu silme kapsamı gözden geçirilmelidir.
 
 ## Mail ve kuyruk işletimi
 
@@ -123,7 +133,7 @@ Buradaki root, bağımsız fiziksel dizinleri aynı URL altında gerçekten suna
 
 Canlı onay öncesi hiçbir adım gerçek sunucu üzerinde uygulanmaz. Hostingin desteklediği deploy düzeni, SMTP ve hukukî metinlerin nihai kabulü açık kalan yayın ön koşullarıdır.
 
-Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde tam proje soketi ayrıca doğrulanır.
+Üretimde cPanel hesap öneki taşıyan yeni DB adı kullanılabilir (`account_madematik_v2` gibi). `DB_OWNERSHIP`, gerçekten bu proje için yeni oluşturulan DB adıyla birebir aynı olmalıdır; bu işaret mevcut bir veritabanını sahiplenmek için kullanılmaz. Yerelde proje/QA soketi veya onaylı dar TCP koşulları ayrıca doğrulanır.
 
 DB koruması komutun gerçek `--database` seçimini de kontrol eder; `migrate:install` ve `schema:dump` aynı sahiplik kapsamındadır. Bağlantı hedefini gizlice değiştirebilecek `DB_URL` ve ayrı `read`/`write` bağlantıları desteklenmez. Parçalı `DB_*` ayarlarıyla tek, açık proje bağlantısı kullanılır. Test ortamında da yıkıcı komut engeli aktiftir.
 

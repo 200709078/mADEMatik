@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AvatarRequest;
 use App\Models\ActivityLog;
 use App\Models\Comment;
 use App\Models\ContactMessage;
 use App\Services\NotificationService;
+use App\Services\AvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +44,20 @@ class ProfileController extends Controller
             return redirect()->route('verification.notice')->with('status', 'Yeni e-posta adresinizi doğrulayın.');
         }
         return back()->with('status', 'Profiliniz güncellendi.');
+    }
+
+    public function storeAvatar(AvatarRequest $request, AvatarService $avatars)
+    {
+        $avatars->store($request->user(), $request->file('avatar'));
+
+        return redirect()->route('profile.edit')->with('status', __('profile.avatar_updated'));
+    }
+
+    public function destroyAvatar(Request $request, AvatarService $avatars)
+    {
+        $avatars->remove($request->user());
+
+        return redirect()->route('profile.edit')->with('status', __('profile.avatar_removed'));
     }
 
     public function password(Request $request)

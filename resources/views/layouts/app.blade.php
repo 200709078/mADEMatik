@@ -18,7 +18,7 @@
                 <x-theme-toggle />
                 @auth
                     <x-notification-bell />
-                    <div class="hidden sm:block"><x-ui.dropdown><x-slot:trigger><x-ui.avatar :name="auth()->user()->name" size="sm" /><span class="max-w-28 truncate">{{ auth()->user()->name }}</span></x-slot:trigger>
+                    <div class="hidden sm:block"><x-ui.dropdown><x-slot:trigger><x-ui.avatar :name="auth()->user()->name" :src="auth()->user()->avatar_url" size="sm" /><span class="max-w-28 truncate">{{ auth()->user()->name }}</span></x-slot:trigger>
                         <a href="{{ route('profile.edit') }}" class="nav-link block">{{ __('ui.profile') }}</a>
                         @if(auth()->user()->isSuperUser())<a href="{{ route('admin.dashboard') }}" class="nav-link block">{{ __('ui.admin') }}</a>@endif
                         <form method="POST" action="{{ route('logout') }}">@csrf<button class="nav-link block w-full text-left" type="submit">{{ __('ui.logout') }}</button></form>

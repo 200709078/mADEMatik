@@ -29,8 +29,11 @@ class DatabaseSafety
         }
         $socket=$db['unix_socket']??'';
         $qaSocketPattern='~^'.preg_quote(storage_path('runtime'),'~').'/qa-[a-f0-9]+/mysql\.sock$~';
-        if (!app()->isProduction() && $socket!==storage_path('runtime/mariadb.sock') && !preg_match($qaSocketPattern,$socket)) {
-            throw new \RuntimeException('Yerel geliştirme ve testte yalnız projeye ait MariaDB soketi kullanılabilir.');
+        $localTcp=app()->environment('local') && $socket==='' && ($db['host']??null)==='127.0.0.1'
+            && (string)($db['port']??'')==='3306' && ($db['database']??null)==='madematik_v2'
+            && ($db['username']??null)==='madematik_v2_user';
+        if (!app()->isProduction() && !$localTcp && $socket!==storage_path('runtime/mariadb.sock') && !preg_match($qaSocketPattern,$socket)) {
+            throw new \RuntimeException('Yerel geliştirme ve testte yalnız projeye ait MariaDB soketi veya açıkça tanımlı yerel proje TCP bağlantısı kullanılabilir.');
         }
     }
 }

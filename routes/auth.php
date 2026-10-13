@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/cikis', [AuthController::class, 'logout'])->name('logout');
     Route::get('/profilim', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profilim', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profilim/fotograf', [ProfileController::class, 'storeAvatar'])->middleware('throttle:6,1')->name('profile.avatar.store');
+    Route::delete('/profilim/fotograf', [ProfileController::class, 'destroyAvatar'])->middleware('throttle:6,1')->name('profile.avatar.destroy');
     Route::put('/profilim/sifre', [ProfileController::class, 'password'])->middleware('throttle:5,1')->name('profile.password');
     Route::put('/profilim/bildirim-tercihleri', [ProfileController::class, 'preferences'])->name('profile.preferences');
     Route::post('/profilim/silme-talebi', [ProfileController::class, 'requestDeletion'])->middleware('throttle:2,60')->name('profile.deletion');

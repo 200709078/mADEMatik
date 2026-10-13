@@ -11,4 +11,5 @@ return [
     'settings.updated'=>'Site içerikleri ve ayarları güncellendi',
     'user.deleted'=>'Üye hesabı silindi', 'user.password_changed'=>'Parola değiştirildi', 'user.password_reset'=>'Parola sıfırlandı',
     'user.profile_updated'=>'Profil güncellendi', 'user.super_user_created'=>'Super User oluşturuldu', 'user.updated'=>'Üye bilgileri güncellendi',
+    'user.avatar_updated'=>'Profil fotoğrafı güncellendi', 'user.avatar_removed'=>'Profil fotoğrafı kaldırıldı',
 ];

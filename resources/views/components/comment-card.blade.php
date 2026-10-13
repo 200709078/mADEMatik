@@ -1,6 +1,6 @@
 @props(['comment', 'project' => null, 'reply' => false])
 <article id="comment-{{ $comment->id }}" {{ $attributes->class(['card p-5 sm:p-6', 'ml-5 sm:ml-12' => $reply]) }} x-data="{replyOpen:false,reportOpen:false}">
-    <div class="flex items-center gap-3"><x-ui.avatar :name="$comment->user->name" /><div><h3 class="text-sm font-semibold">{{ $comment->user->name }}</h3><time datetime="{{ $comment->created_at->toIso8601String() }}" class="text-muted text-xs">{{ $comment->created_at->translatedFormat('d F Y H:i') }}</time></div></div>
+    <div class="flex items-center gap-3"><x-ui.avatar :name="$comment->user->name" :src="$comment->user->avatar_url" /><div><h3 class="text-sm font-semibold">{{ $comment->user->name }}</h3><time datetime="{{ $comment->created_at->toIso8601String() }}" class="text-muted text-xs">{{ $comment->created_at->translatedFormat('d F Y H:i') }}</time></div></div>
     <p class="mt-4 text-sm leading-7 whitespace-pre-line break-words">{{ $comment->body }}</p>
     @auth
         @if(auth()->user()->hasVerifiedEmail() && !auth()->user()->is_blocked)

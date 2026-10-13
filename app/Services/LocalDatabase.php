@@ -13,7 +13,10 @@ class LocalDatabase
         if ($event->command !== 'serve' || ! app()->environment('local')) return;
 
         DatabaseSafety::assertOwnedConnection(config('database.default'));
-        if (config('database.connections.mysql.unix_socket') !== storage_path('runtime/mariadb.sock')) {
+        $socket=config('database.connections.mysql.unix_socket');
+        // The owned local TCP database is managed by the system, never by this project.
+        if ($socket==='') return;
+        if ($socket !== storage_path('runtime/mariadb.sock')) {
             throw new \RuntimeException('Yerel web sunucusu yalnız bu projenin geliştirme veritabanını otomatik başlatabilir.');
         }
         // Starting the web server must never initialize a database or replace credentials.

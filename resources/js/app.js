@@ -42,6 +42,24 @@ Alpine.data('heroSlider', (count = 3) => ({
 
 Alpine.data('clockTool', createClockTool);
 
+Alpine.data('profilePhoto', () => ({
+    previewUrl: null,
+    hasFile: false,
+    selectPhoto(event) {
+        this.clearPreview();
+        const file = event.target.files?.[0];
+        this.hasFile = !!file;
+        if (file && file.size <= 2 * 1024 * 1024 && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            this.previewUrl = URL.createObjectURL(file);
+        }
+    },
+    clearPreview() {
+        if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
+        this.previewUrl = null;
+    },
+    destroy() { this.clearPreview(); },
+}));
+
 Alpine.data('accessibleModal', () => ({
     open: false,
     previousFocus: null,

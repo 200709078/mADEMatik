@@ -95,6 +95,46 @@ Bilgisayar yeniden açıldıktan sonra özel MariaDB süreci çalışmadığınd
 
 İşletim sistemi yeniden başlatılmadı; DB'nin kapalı olduğu başlangıç durumu kontrollü olarak doğrulandı. Sistemin MariaDB servisi ve diğer proje/DB ayarları değiştirilmedi. Bu ek kontrol, yukarıdaki ilk kapsamlı koşunun sayılarından ayrı raporlanır.
 
+## Profil fotoğrafı — 13 Ekim 2026
+
+Profil sayfasına önizlemeli ekleme/değiştirme/kaldırma eklendi. Ortak avatar fotoğrafı profil, kullanıcı menüsü ve yorumlarda gösterir; boş, eksik veya yüklenemeyen görselde ad/soyad baş harflerine döner. `avatar_path` yeni migration yerine özgün kullanıcı migration'ına eklendi. Sahipliği doğrulanmış yerel DB'de yalnız nullable alan oluşturuldu; özel yedek alındı ve işlem öncesi/sonrası kullanıcı alanlarının birebir korunması doğrulandı. QA şeması ayrı örnekte mevcut kayıtlar sıfırlanmadan uyumlandı.
+
+| Hedefli kontrol | Sonuç |
+| --- | --- |
+| Profil fotoğrafı PHPUnit | **25 test / 237 assertion**, başarılı; SQLite `:memory:` ve sahte disk |
+| Mevcut kullanıcı silme regresyonları | **2 test / 23 assertion**, başarılı; `AdminAndMediaTest::test_user_deletion_*` |
+| Chromium profil fotoğrafı | **15/15**, başarılı; 320/390/1280 px, açık/koyu tema |
+| Vite | Derleme başarılı |
+
+Güvenli dosya tipi/boyut/piksel sınırları, merkezden kırpma ve WebP kodlama, eklenmiş içeriklerin atılması, sahiplik ve mass assignment koruması, eski dosya temizliği, başarısız DB/disk işleminde mevcut fotoğrafın korunması, engelli/ziyaretçi erişimi ve hız sınırı kontrol edildi. Tarayıcıda PNG önizleme/yükleme, JPEG ile değiştirme, geçersiz dosyada hata ve mevcut fotoğrafın korunması, üst menü/yorum fotoğrafı, bozuk görselde baş harfler ve kaldırma doğrulandı. İncelenen altı boyut/tema kombinasyonunda yatay taşma, JavaScript hatası ve axe WCAG ihlali görülmedi.
+
+Tarayıcı yalnız `127.0.0.1:8015` üzerinde ayrı QA veritabanındaki sahte üyeyi kullandı. Test fotoğrafları sentetiktir; test sonunda kullanıcının fotoğrafı endpoint üzerinden kaldırıldı, yeni avatar dosyası kalmadı. Silinen görselin URL'si yerel özel dosya imza rotasına düştüğünde 403 döndü; asıl dosyanın silinmesi ayrıca `ENOENT` ile doğrulandı. Rapor ve üç ekran görüntüsü Git dışında `storage/runtime/qa/profile-photo/` altındadır. Bu ek testler ilk kapsamlı koşunun sayılarından ayrı raporlanır.
+
+Son yerel bağlantı kontrolünde `.env` uygulama parolası ile DB hesabının parolası arasında uyuşmazlık tespit edildi (**1045**, HTTP **500**). Kullanıcının açık onayıyla, tam özel soket/veri dizini ve hesap sahipliği doğrulandıktan sonra yalnız `madematik_v2_user@localhost` parolası mevcut `.env` değeriyle eşitlendi. `.env` SHA256 değeri ve tüm kullanıcı alanlarının işlem öncesi/sonrası SHA256 karşılaştırması aynı kaldı. Uygulama DB bağlantısı ve `avatar_path` alanı doğrulandı; yerel ana sayfa ve giriş **200**, oturumsuz profil ise beklendiği gibi girişe **302** döndü. QA web/DB süreçleri kapatıldı; ana yerel DB çalışır durumda bırakıldı. Profil fotoğrafı değişiklikleri commit/push edilmedi; canlı ortam ve diğer projelerde işlem yapılmadı.
+
+## Yerel DB'nin sistem MariaDB'sine taşınması — 13 Ekim 2026
+
+Kullanıcının açık talimatıyla yalnız yeni mADEMatik veritabanı, özel soket örneğinden mevcut yerel sistem MariaDB'sine taşındı. Yönetici erişimiyle sistem şemaları listelendi, `madematik_v2` ve `madematik_v2_user` adlarının hiçbir şema/hesap adresinde çakışmadığı doğrulandı. Yeni DB ve yalnız `madematik_v2.*` yetkili `madematik_v2_user@127.0.0.1` oluşturuldu; mevcut DB ve kullanıcılar değiştirilmedi.
+
+Kaynak **19 InnoDB tablo**, veri/indeks alanı **770.048 bayt (752 KiB)** içeriyordu. Özel ilk yedekten sonra kısa yerel bakım modunda güncel, `DROP` içermeyen dump alınıp boş yeni hedefe aktarıldı. Her tablonun bütün satırlarının SHA256 özeti ve satır sayısı hem hedefle hem aktarım sonrası kaynakla birebir eşleşti. Örnekler:
+
+| Tablo | Kaynak satır | Hedef satır |
+| --- | --- | --- |
+| `users` | 1 | 1 |
+| `projects` | 5 | 5 |
+| `comments` | 1 | 1 |
+| `settings` | 10 | 10 |
+| `migrations` | 4 | 4 |
+
+`.env` atomik olarak TCP'ye çevrildi: boş `DB_SOCKET`, `DB_HOST=127.0.0.1`, `DB_PORT=3306` ve yeni proje hesabı. APP_KEY, SMTP, ortam ve diğer DB dışı ayarlar korunmuştur. Kullanıcının ayrıca açık onayıyla yalnız `DatabaseSafety` ve `LocalDatabase` sınıflarında bu tam yerel hedefe dar izin eklendi; eski özel/QA soketleri ve yıkıcı komut yasakları korundu. TCP'de özel MariaDB başlatılmaz; sistem servisi yapılandırması değiştirilmedi.
+
+- `php artisan migrate:status`: mevcut **4 migration Ran**; migration/seed çalıştırılmadı.
+- Normal `artisan serve` ile geçici HTTP sunucusu açıldı; yalnız bu süreçte `SESSION_DRIVER=array`, `CACHE_STORE=array` kullanılarak ana sayfa **200** doğrulandı. DB'deki session/cache verileri değişmedi; doğrulama sunucusu kapatıldı.
+- Adminer `Sunucu: 127.0.0.1`: yeni DB görünür ve **19 tablo**, **0 hata**. Varsayılan Adminer ve PDO adresi çalışır; TCP'de `ext=pdo` zorunlu değildir.
+- PHP sözdizimi ve sahte bağlantı yapılandırması korumaları kontrol edildi; kapsamlı test, gerçek SMTP ve canlı dağıtım yapılmadı.
+
+Sırlar yalnız özel `.env` ve Git dışında 0600 bağlantı/yedek dosyalarındadır. Dump, önceki `.env` ve karşılaştırma raporları `.local/db-transfer-20261013-d2199075/` altında korunur. Eski izole MariaDB ve `storage/runtime/mariadb` verisi korundu; durdurma için kullanıcının ayrı kararı beklenir. Eski kaynak artık taşıma anındaki kopyadır; sonraki yazımlar TCP hedefine gider. Geri dönüş değerlendirilirse önce yeni hedefteki son veriler korunmalıdır. Sistem sunucusunda `DROP`, `migrate:fresh`, `db:wipe` veya diğer mevcut DB'lere yönelik değişiklik yapılmadı. Commit/push yapılmadı.
+
 ## Yayından önce kalanlar
 
 Yerel sonuçlar geçmiştir. Gerçek cPanel/PHP-FPM/document root, HTTPS/SSL, ayrı üretim DB sahipliği, dosya izinleri, gerçek SMTP ve cron/worker çalışma biçimi ayrıca onaylanmış canlı hazırlığında doğrulanmalıdır. Gerçek bağımsız uygulama dizinlerinin ve URL harf düzeninin korunması aynı hazırlığın parçasıdır; yerel fixture deneyi mevcut sunucuyu doğrulamaz.
