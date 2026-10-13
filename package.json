@@ -5,13 +5,14 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "test:clock": "node --test tests/Browser/clock.test.mjs",
+        "test:clock": "node --test tests/Browser/clock.test.mjs tests/Browser/world-clocks.test.mjs",
         "test:browser": "node scripts/browser-qa.mjs"
     },
     "dependencies": {
         "@fontsource-variable/inter": "^5.3.0",
         "alpinejs": "^3.15.0",
-        "lucide": "^0.468.0"
+        "lucide": "^0.468.0",
+        "suncalc": "2.1.1"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.13.0",

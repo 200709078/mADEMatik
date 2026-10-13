@@ -1,0 +1,33 @@
+export const WORLD_CLOCK_CITIES = Object.freeze([
+    { id: 'istanbul', timeZone: 'Europe/Istanbul', name: { tr: 'İstanbul', en: 'Istanbul' } },
+    { id: 'ankara', timeZone: 'Europe/Istanbul', name: { tr: 'Ankara', en: 'Ankara' } },
+    { id: 'london', timeZone: 'Europe/London', name: { tr: 'Londra', en: 'London' } },
+    { id: 'paris', timeZone: 'Europe/Paris', name: { tr: 'Paris', en: 'Paris' } },
+    { id: 'berlin', timeZone: 'Europe/Berlin', name: { tr: 'Berlin', en: 'Berlin' } },
+    { id: 'rome', timeZone: 'Europe/Rome', name: { tr: 'Roma', en: 'Rome' } },
+    { id: 'athens', timeZone: 'Europe/Athens', name: { tr: 'Atina', en: 'Athens' } },
+    { id: 'moscow', timeZone: 'Europe/Moscow', name: { tr: 'Moskova', en: 'Moscow' } },
+    { id: 'cairo', timeZone: 'Africa/Cairo', name: { tr: 'Kahire', en: 'Cairo' } },
+    { id: 'johannesburg', timeZone: 'Africa/Johannesburg', name: { tr: 'Johannesburg', en: 'Johannesburg' } },
+    { id: 'dubai', timeZone: 'Asia/Dubai', name: { tr: 'Dubai', en: 'Dubai' } },
+    { id: 'delhi', timeZone: 'Asia/Kolkata', name: { tr: 'Yeni Delhi', en: 'New Delhi' } },
+    { id: 'kathmandu', timeZone: 'Asia/Kathmandu', name: { tr: 'Katmandu', en: 'Kathmandu' } },
+    { id: 'bangkok', timeZone: 'Asia/Bangkok', name: { tr: 'Bangkok', en: 'Bangkok' } },
+    { id: 'singapore', timeZone: 'Asia/Singapore', name: { tr: 'Singapur', en: 'Singapore' } },
+    { id: 'beijing', timeZone: 'Asia/Shanghai', name: { tr: 'Pekin', en: 'Beijing' } },
+    { id: 'hong-kong', timeZone: 'Asia/Hong_Kong', name: { tr: 'Hong Kong', en: 'Hong Kong' } },
+    { id: 'tokyo', timeZone: 'Asia/Tokyo', name: { tr: 'Tokyo', en: 'Tokyo' } },
+    { id: 'seoul', timeZone: 'Asia/Seoul', name: { tr: 'Seul', en: 'Seoul' } },
+    { id: 'sydney', timeZone: 'Australia/Sydney', name: { tr: 'Sidney', en: 'Sydney' } },
+    { id: 'auckland', timeZone: 'Pacific/Auckland', name: { tr: 'Auckland', en: 'Auckland' } },
+    { id: 'new-york', timeZone: 'America/New_York', name: { tr: 'New York', en: 'New York' } },
+    { id: 'chicago', timeZone: 'America/Chicago', name: { tr: 'Chicago', en: 'Chicago' } },
+    { id: 'los-angeles', timeZone: 'America/Los_Angeles', name: { tr: 'Los Angeles', en: 'Los Angeles' } },
+    { id: 'toronto', timeZone: 'America/Toronto', name: { tr: 'Toronto', en: 'Toronto' } },
+    { id: 'mexico-city', timeZone: 'America/Mexico_City', name: { tr: 'Meksiko', en: 'Mexico City' } },
+    { id: 'sao-paulo', timeZone: 'America/Sao_Paulo', name: { tr: 'São Paulo', en: 'São Paulo' } },
+    { id: 'honolulu', timeZone: 'Pacific/Honolulu', name: { tr: 'Honolulu', en: 'Honolulu' } },
+].map(city => Object.freeze({ ...city, name: Object.freeze(city.name) })));
+
+export const DEFAULT_WORLD_CLOCK_IDS = Object.freeze(['istanbul', 'london', 'new-york', 'tokyo']);
+export const MAX_WORLD_CLOCKS = 8;

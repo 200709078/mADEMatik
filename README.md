@@ -32,6 +32,8 @@ php artisan madematik:create-super-user
 
 Migration komutu yalnızca yeni mADEMatik veritabanına yönelmelidir. Mevcut taşınmış veritabanında ilk kurulum veya seed tekrar çalıştırılmaz. Güvenlik denetimini devre dışı bırakmayın. Seed başlangıç site ayarlarını ve salt okunur referanslarla doğrulanan proje tanıtımlarını oluşturur; otomatik yönetici veya sabit parola oluşturmaz. Super User komutu etkileşimli olarak güçlü bir parola ister.
 
+Saat & Sayaç da başlangıç proje verilerine dahildir. Mevcut mADEMatik veritabanına yalnız bu projeyi eklemek için bir defa `php artisan db:seed --class=ClockProjectSeeder` çalıştırılır; migration gerekmez. Komut mevcut projeyi değiştirmez veya ikinci bir kayıt oluşturmaz. Uygulama bağlantısı `/saat-sayac` olduğundan aynı site içinde açılır.
+
 Veritabanı MariaDB/MySQL uyumludur. Kullanıcı onaylı yerel TCP istisnası yalnız yukarıdaki adres/port, `madematik_v2` ve `madematik_v2_user` için geçerlidir; sahiplik, `DB_URL`/ayrı okuma-yazma hedefi ve yıkıcı komut korumaları sürer. aWa, eski ana site ve diğer uygulama veritabanlarına bu kullanıcıyla erişilemez.
 
 Eski `storage/runtime/mariadb.sock` ve `storage/runtime/mariadb/` taşımanın kaynak örneğidir; süreç 13 Ekim 2026'da kullanıcı onayıyla durduruldu, veri dizini ve yedekler korundu. `scripts/dev-database.sh` yalnız bu eski özel örneği yönetir; güncel TCP bağlantısını veya [ayrı QA ortamını](docs/qa-environment.md) yönetmez. Kaynak artık taşıma anındaki kopyadır; geri dönüş, hedefe sonradan yazılan veriler ayrıca yedeklenip değerlendirildikten sonra onayla planlanır. Otomatik geri dönüş yapılmaz.

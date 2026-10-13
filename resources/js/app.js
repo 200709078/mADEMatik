@@ -1,4 +1,5 @@
 import { createClockTool } from './clock';
+import { createWorldClockTool } from './world-clocks';
 import { createToastStack } from './toasts';
 import Alpine from 'alpinejs';
 import { createIcons, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity } from 'lucide';
@@ -44,6 +45,17 @@ Alpine.data('heroSlider', (count = 3) => ({
 }));
 
 Alpine.data('clockTool', createClockTool);
+Alpine.data('worldClockTool', labels => {
+    const tool = createWorldClockTool(labels);
+    for (const method of ['addCity', 'resetCities']) {
+        const original = tool[method];
+        tool[method] = function (...args) {
+            original.apply(this, args);
+            this.$nextTick(refreshIcons);
+        };
+    }
+    return tool;
+});
 
 Alpine.data('profilePhoto', () => ({
     previewUrl: null,

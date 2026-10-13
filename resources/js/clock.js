@@ -17,6 +17,10 @@ export function createClockTool(labels = {}) {
     interval: null,
     notice: '',
     storageKey: 'madematik-clock-v1',
+    viewStorageKey: 'madematik-clock-view-v1',
+    zoomLevels: { clock: 100, timer: 100 },
+    viewNotice: '',
+    presetMinutes: [1, 5, 10, 15, 20, 25, 30, 40, 45, 60],
     init() {
         try {
             let saved;
@@ -41,6 +45,12 @@ export function createClockTool(labels = {}) {
                 this.seconds = Math.floor(this.total / 1000) % 60;
             }
         } catch (_) { this.notice = this.labels.storageUnavailable; }
+        try {
+            const view = JSON.parse(localStorage.getItem(this.viewStorageKey) || 'null');
+            for (const mode of ['clock', 'timer']) {
+                if (Number.isInteger(view?.[mode]) && view[mode] >= 60 && view[mode] <= 300 && view[mode] % 10 === 0) this.zoomLevels[mode] = view[mode];
+            }
+        } catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
         this.tick();
         this.interval = window.setInterval(() => this.tick(), 200);
         this.onVisibility = () => this.tick();
@@ -80,6 +90,28 @@ export function createClockTool(labels = {}) {
         try { localStorage.setItem(this.storageKey, JSON.stringify({ total: this.total, remaining: this.remaining, startedAt: this.startedAt, endsAt: this.endsAt, running: this.running, completed: this.completed, mode: this.mode })); } catch (_) { this.notice = this.labels.storageUnavailable; }
     },
     setMode(mode) { this.mode = mode === 'timer' ? 'timer' : 'clock'; this.persist(); },
+    get zoomPercent() { return this.zoomLevels[this.mode]; },
+    get zoomScale() { return this.zoomPercent / 100; },
+    changeZoom(change) {
+        if (![10, -10, 0].includes(change)) return;
+        this.zoomLevels[this.mode] = change === 0 ? 100 : Math.max(60, Math.min(300, this.zoomPercent + change));
+        try { localStorage.setItem(this.viewStorageKey, JSON.stringify(this.zoomLevels)); this.viewNotice = ''; }
+        catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
+    },
+    selectPreset(minutes) {
+        if (this.running || (this.startedAt !== null && !this.completed) || !this.presetMinutes.includes(minutes)) return;
+        this.hours = Math.floor(minutes / 60);
+        this.minutes = minutes % 60;
+        this.seconds = 0;
+        this.total = minutes * 60000;
+        this.remaining = this.total;
+        this.startedAt = null;
+        this.endsAt = null;
+        this.completed = false;
+        this.notice = '';
+        this.persist();
+    },
+    isPreset(minutes) { return Number(this.hours) * 60 + Number(this.minutes) === minutes && Number(this.seconds) === 0; },
     start() {
         if (this.running) return;
         if (this.completed || this.startedAt === null) {
@@ -109,6 +141,13 @@ export function createClockTool(labels = {}) {
     },
     get clockText() { return new Intl.DateTimeFormat(document.documentElement.lang || 'tr', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(this.now); },
     get dateText() { return new Intl.DateTimeFormat(document.documentElement.lang || 'tr', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(this.now); },
+    get weekNumber() {
+        const local = new Date(this.now);
+        const day = new Date(Date.UTC(local.getFullYear(), local.getMonth(), local.getDate()));
+        day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
+        return Math.ceil((((day - Date.UTC(day.getUTCFullYear(), 0, 1)) / 86400000) + 1) / 7);
+    },
+    get remainingPercent() { return Math.max(0, Math.min(100, this.total ? this.remaining / this.total * 100 : 0)); },
     get countdownText() {
         const value = Math.ceil(this.remaining / 1000);
         return [Math.floor(value / 3600), Math.floor(value / 60) % 60, value % 60].map(part => String(part).padStart(2, '0')).join(':');

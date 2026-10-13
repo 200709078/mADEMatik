@@ -162,11 +162,12 @@
     .admin-sidebar .nav-link { display: flex; align-items: center; gap: .75rem; }
     .admin-content { padding: 2rem; max-width: 92rem; width: 100%; }
     .admin-content h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; }
-    .clock-face { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: clamp(3rem, 10vw, 8rem); font-weight: 600; line-height: 1.15; letter-spacing: -.05em; }
-    .clock-panel:fullscreen { display: grid; align-content: center; background: var(--page); padding: 2rem; }
-    .clock-panel:fullscreen .clock-face { font-size: clamp(3rem, 15vw, 14rem); }
-    .clock-panel-expanded { position: fixed; inset: 0; z-index: 60; display: grid; align-content: center; overflow-y: auto; background: var(--page); border-radius: 0; padding: 2rem; }
-    .clock-panel-expanded .clock-face { font-size: clamp(3rem, 15vw, 14rem); }
+    .clock-panel { container-type: inline-size; }
+    .clock-face { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: min(calc(clamp(3rem, 10vw, 8rem) * var(--clock-zoom, 1)), 20cqi); font-weight: 600; line-height: 1.15; letter-spacing: -.05em; white-space: nowrap; }
+    .clock-panel:fullscreen { display: grid; align-content: safe center; overflow-y: auto; background: var(--page); padding: clamp(1rem, 3vw, 2rem); border-radius: 0; }
+    .clock-panel:fullscreen .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
+    .clock-panel-expanded { position: fixed; inset: 0; z-index: 60; display: grid; align-content: safe center; overflow-y: auto; background: var(--page); border-radius: 0; padding: clamp(1rem, 3vw, 2rem); }
+    .clock-panel-expanded .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
     .link { color: var(--brand-text); text-decoration: underline; text-underline-offset: 4px; }
     .project-cover { aspect-ratio: 16/9; width: 100%; object-fit: cover; background: var(--surface-muted); }
     .hero-panel { position: relative; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-brand-950); color: #fff; }
