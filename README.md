@@ -62,6 +62,8 @@ Hesap/veri silme talebi profilden yöneticiye iletilir. Yönetici ayrıca onayla
 
 Tema işletim sistemi tercihinden başlar ve kullanıcının seçimini tarayıcıda saklar. Saat & Sayaç gerçek yerel zamanı gösterir; geri sayımın başlangıç/bitiş bilgileri ve duraklama durumu tarayıcıda kalıcıdır.
 
+Dünya saatlerinin varsayılan sırası Ankara, İstanbul, Londra, New York, Tokyo ve Sidney’dir; tarayıcıda saklanan kişisel şehir seçimi korunur. “Varsayılan Şehirler” düğmesi güncel listeye döner. Güneş bölümü yalnız tarayıcı konum izni verilmiş ve geçerli konum alınmışsa gösterilir. İzin yoksa, kapatılırsa veya konum alınamazsa gizli kalır; varsayılan konum ya da izin isteme düğmesi kullanılmaz. Konum bu sekmenin belleğinde hesaplama için kullanılır, sunucuya gönderilmez veya tarayıcı depolamasına yazılmaz.
+
 Geçici işlem mesajları frontend ve admin'de aynı toast bileşenini kullanır. Başarı/bilgi mesajları 6 saniye, uyarılar 8 saniye sonra kapanır; hatalar elle kapatılır. Üzerine gelme ve klavye odağı süreyi durdurur. Tasarım ortak tema/tokenlarıyla uyumludur; azaltılmış hareket tercihi ve ekran okuyucu bildirimleri desteklenir. Kalıcı açıklamalar ve alan doğrulama mesajları ilgili içerikle birlikte kalır. JavaScript olayları için `madematik-toast` kullanılır; mesajlar HTML olarak çalıştırılmaz.
 
 ## Görseller, mail ve bağımsız uygulamalar

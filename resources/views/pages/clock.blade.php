@@ -10,10 +10,12 @@
     <div x-data="clockTool(@js(['storageUnavailable'=>__('ui.timer_storage_unavailable'),'zoomStorageUnavailable'=>__('clock.zoom_storage_unavailable'),'invalidDuration'=>__('ui.timer_invalid_duration'),'shrink'=>__('ui.shrink'),'enlarge'=>__('ui.enlarge'),'soundOn'=>__('clock.sound_on'),'soundOff'=>__('clock.sound_off')]))" @keydown.escape.window="expanded=false" x-effect="document.body.style.overflow = expanded ? 'hidden' : ''">
         <div x-ref="panel" data-testid="clock-panel" class="clock-panel card p-6 sm:p-10" :style="{'--clock-zoom':zoomScale}" :class="{'clock-panel-expanded':expanded}" :role="expanded ? 'dialog' : null" :aria-modal="expanded ? 'true' : null" aria-label="{{ __('ui.clock') }}">
             <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex gap-1 rounded-xl surface-muted p-1" role="tablist" aria-label="{{ __('ui.clock') }}">
+                <div class="flex gap-1 rounded-xl surface-muted p-1">
                     <a href="{{ route('home') }}" class="button button-sm button-ghost button-icon" aria-label="{{ __('ui.home_control') }}" title="{{ __('ui.home_control') }}"><x-icon name="home" class="h-4 w-4" /></a>
-                    <button type="button" x-ref="clockTab" id="clock-tab" role="tab" @click="setMode('clock')" @keydown.arrow-right.prevent="setMode('timer');$refs.timerTab.focus()" @keydown.arrow-left.prevent="setMode('timer');$refs.timerTab.focus()" :aria-selected="mode==='clock'" :tabindex="mode==='clock'?0:-1" aria-controls="clock-display" aria-label="{{ __('ui.clock_tab') }}" title="{{ __('ui.clock_tab') }}" class="button button-sm button-icon" :class="mode==='clock'?'button-primary':'button-ghost'"><x-icon name="clock" class="h-4 w-4" /></button>
-                    <button type="button" x-ref="timerTab" id="timer-tab" role="tab" @click="setMode('timer')" @keydown.arrow-right.prevent="setMode('clock');$refs.clockTab.focus()" @keydown.arrow-left.prevent="setMode('clock');$refs.clockTab.focus()" :aria-selected="mode==='timer'" :tabindex="mode==='timer'?0:-1" aria-controls="timer-display" aria-label="{{ __('ui.timer_tab') }}" title="{{ __('ui.timer_tab') }}" class="button button-sm button-icon" :class="mode==='timer'?'button-primary':'button-ghost'"><x-icon name="timer" class="h-4 w-4" /></button>
+                    <div class="flex gap-1" role="tablist" aria-label="{{ __('ui.clock') }}">
+                        <button type="button" x-ref="clockTab" id="clock-tab" role="tab" @click="setMode('clock')" @keydown.arrow-right.prevent="setMode('timer');$refs.timerTab.focus()" @keydown.arrow-left.prevent="setMode('timer');$refs.timerTab.focus()" :aria-selected="mode==='clock'" :tabindex="mode==='clock'?0:-1" aria-controls="clock-display" aria-label="{{ __('ui.clock_tab') }}" title="{{ __('ui.clock_tab') }}" class="button button-sm button-icon" :class="mode==='clock'?'button-primary':'button-ghost'"><x-icon name="clock" class="h-4 w-4" /></button>
+                        <button type="button" x-ref="timerTab" id="timer-tab" role="tab" @click="setMode('timer')" @keydown.arrow-right.prevent="setMode('clock');$refs.clockTab.focus()" @keydown.arrow-left.prevent="setMode('clock');$refs.clockTab.focus()" :aria-selected="mode==='timer'" :tabindex="mode==='timer'?0:-1" aria-controls="timer-display" aria-label="{{ __('ui.timer_tab') }}" title="{{ __('ui.timer_tab') }}" class="button button-sm button-icon" :class="mode==='timer'?'button-primary':'button-ghost'"><x-icon name="timer" class="h-4 w-4" /></button>
+                    </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <x-theme-toggle data-testid="clock-theme" />
@@ -32,12 +34,12 @@
                     </x-ui.button>
                 </div>
             </div>
-            <div id="clock-display" role="tabpanel" aria-labelledby="clock-tab" x-show="mode==='clock'" class="py-10 text-center">
+            <div id="clock-display" role="tabpanel" aria-labelledby="clock-tab" x-show="mode==='clock'" class="surface-muted mb-6 rounded-xl py-10 text-center">
                 <h2 class="text-muted mb-6 text-lg font-medium">{{ __('clock.now') }}</h2>
                 <time class="clock-face block" x-text="clockText" :datetime="new Date(now).toISOString()"></time>
                 <div class="mt-6 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-base sm:text-lg">
                     <p x-text="dateText"></p>
-                    <p class="text-muted text-sm" x-text="@js(__('clock.week', ['week'=>':week'])).replace(':week',weekNumber)"></p>
+                    <p class="text-muted" x-text="@js(__('clock.week', ['week'=>':week'])).replace(':week',weekNumber)"></p>
                 </div>
                 <p class="eyebrow mt-6">{{ __('clock.local_time_label') }}</p>
             </div>

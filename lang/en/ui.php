@@ -3,7 +3,7 @@
 return [
     'close' => 'Close', 'actions' => 'Actions', 'tabs' => 'Sections', 'pagination' => 'Pagination',
     'previous' => 'Previous', 'next' => 'Next', 'results' => 'Showing :first–:last of :total results',
-    'empty' => 'No content yet', 'theme' => 'Change theme', 'light_theme' => 'Switch to light theme', 'dark_theme' => 'Switch to dark theme',
+    'empty' => 'No content yet', 'theme' => 'Change theme', 'light_theme' => 'Light Theme', 'dark_theme' => 'Dark Theme',
     'notifications' => 'Notifications', 'unread' => ':count unread notifications', 'skip' => 'Skip to content',
     'home' => 'Home', 'about' => 'About', 'projects' => 'Projects', 'clock' => 'Clock & Timer', 'contact' => 'Contact',
     'login' => 'Sign In', 'register' => 'Join', 'profile' => 'My Profile', 'logout' => 'Sign Out', 'admin' => 'Administration', 'menu' => 'Open menu',

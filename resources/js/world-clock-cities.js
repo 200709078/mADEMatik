@@ -29,5 +29,5 @@ export const WORLD_CLOCK_CITIES = Object.freeze([
     { id: 'honolulu', timeZone: 'Pacific/Honolulu', name: { tr: 'Honolulu', en: 'Honolulu' } },
 ].map(city => Object.freeze({ ...city, name: Object.freeze(city.name) })));
 
-export const DEFAULT_WORLD_CLOCK_IDS = Object.freeze(['istanbul', 'london', 'new-york', 'tokyo']);
+export const DEFAULT_WORLD_CLOCK_IDS = Object.freeze(['ankara', 'istanbul', 'london', 'new-york', 'tokyo', 'sydney']);
 export const MAX_WORLD_CLOCKS = 8;

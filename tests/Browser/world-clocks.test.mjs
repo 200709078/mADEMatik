@@ -7,7 +7,7 @@ import { DEFAULT_WORLD_CLOCK_IDS, MAX_WORLD_CLOCKS, WORLD_CLOCK_CITIES } from '.
 const labels = {
     locale: 'tr', storageUnavailable: 'Depolama kullanılamıyor.', cityLimitReached: 'En fazla 8 şehir.', invalidCity: 'Geçersiz şehir.',
     sameDay: 'Bugün', previousDay: 'Önceki gün', nextDay: 'Sonraki gün',
-    locationIdle: 'Konumunuzu kullanın.', locationLoading: 'Konum alınıyor.', locationReady: 'Konum hazır.', locationDefault: 'Varsayılan konum.',
+    locationIdle: 'Konumunuzu kullanın.', locationLoading: 'Konum alınıyor.', locationReady: 'Konum hazır.',
     locationDenied: 'İzin verilmedi.', locationUnavailable: 'Konum alınamadı.', locationTimeout: 'Zaman aşımı.',
     locationUnsupported: 'Konum desteklenmiyor.', locationInsecure: 'Güvenli bağlantı gerekli.', locationInvalid: 'Geçersiz konum.',
     solarUnavailable: 'Hesaplanamadı.', polarDay: 'Güneş batmıyor.', polarNight: 'Güneş doğmuyor.', solarNoEvent: 'Olay yok.',
@@ -49,6 +49,22 @@ function environment({ saved = null, time = '2026-10-13T12:00:00Z', zone = 'Euro
 }
 
 const location = (latitude = 41.0082, longitude = 28.9784) => ({ coords: { latitude, longitude } });
+const flushPermissions = () => new Promise(resolve => setImmediate(resolve));
+
+function withPermission(env, state) {
+    const status = { state, onchange: null };
+    env.dependencies.navigator.permissions = { query: async descriptor => {
+        assert.deepEqual(descriptor, { name: 'geolocation' });
+        return status;
+    } };
+    return status;
+}
+
+function changePermission(status, state) {
+    status.state = state;
+    assert.equal(typeof status.onchange, 'function');
+    status.onchange({ target: status });
+}
 
 test('şehir kataloğu benzersiz kimlikler, Türkçe/İngilizce adlar ve geçerli IANA bölgeleri içerir', () => {
     assert.equal(new Set(WORLD_CLOCK_CITIES.map(city => city.id)).size, WORLD_CLOCK_CITIES.length);
@@ -58,11 +74,12 @@ test('şehir kataloğu benzersiz kimlikler, Türkçe/İngilizce adlar ve geçerl
     }
 });
 
-test('varsayılan dünya saatleri İstanbul, Londra, New York ve Tokyo için aynı anı gösterir', () => {
+test('varsayılan dünya saatleri Ankara, İstanbul, Londra, New York, Tokyo ve Sidney sırasıyla aynı anı gösterir', () => {
     const env = environment(); const tool = env.tool();
-    assert.deepEqual(tool.selectedIds, DEFAULT_WORLD_CLOCK_IDS);
-    assert.deepEqual(tool.selectedCities.map(city => city.time), ['15:00:00', '13:00:00', '08:00:00', '21:00:00']);
-    assert.equal(tool.selectedCities[0].name, 'İstanbul');
+    assert.deepEqual(tool.selectedIds, ['ankara', 'istanbul', 'london', 'new-york', 'tokyo', 'sydney']);
+    assert.deepEqual(tool.selectedCities.map(city => city.time), ['15:00:00', '15:00:00', '13:00:00', '08:00:00', '21:00:00', '23:00:00']);
+    assert.equal(tool.selectedCities[0].name, 'Ankara');
+    assert.equal(tool.selectedCities[1].name, 'İstanbul');
     assert.equal(tool.selectedCities[0].offset, 'UTC+03:00');
     tool.destroy();
 });
@@ -100,7 +117,7 @@ test('şehir kartları cihaz takvimine göre önceki ve sonraki günü ayırır'
 test('şehir ekleme/kaldırma/sıfırlama yalnız favori kimliklerini saklar ve yeniden açıldığında korur', () => {
     const env = environment(); const tool = env.tool();
     tool.selectedCityId = 'kathmandu'; tool.addCity(); tool.removeCity('london');
-    assert.deepEqual(env.saved(), ['istanbul', 'new-york', 'tokyo', 'kathmandu']);
+    assert.deepEqual(env.saved(), [...DEFAULT_WORLD_CLOCK_IDS.filter(id => id !== 'london'), 'kathmandu']);
     assert.equal(tool.cityOptions.some(city => city.id === 'kathmandu'), false);
     tool.destroy();
     const reopened = env.tool(); assert.deepEqual(reopened.selectedIds, env.saved());
@@ -140,11 +157,11 @@ test('tarayıcı depolaması engelli olsa da dünya saatleri ve favori işlemler
     env.dependencies.storage.getItem = () => { throw new Error('blocked'); };
     env.dependencies.storage.setItem = () => { throw new Error('blocked'); };
     const tool = env.tool(); assert.equal(tool.worldNotice, labels.storageUnavailable);
-    tool.selectedCityId = 'paris'; tool.addCity(); assert.equal(tool.selectedCities.length, 5);
+    tool.selectedCityId = 'paris'; tool.addCity(); assert.equal(tool.selectedCities.length, DEFAULT_WORLD_CLOCK_IDS.length + 1);
     assert.equal(tool.worldNotice, labels.storageUnavailable); tool.destroy();
 });
 
-test('sayfa açılışında konum istenmez; açık eylemle tahmini güneş saatleri cihaz diliminde hesaplanır', () => {
+test('konum istek yardımcısı geçerli konumdan güneş saatlerini cihaz diliminde hesaplar', () => {
     const env = environment(); const tool = env.tool();
     assert.equal(env.requests.length, 0); assert.equal(tool.locationState, 'idle');
     tool.requestLocation(); assert.equal(env.requests.length, 1); assert.equal(tool.locationMessage, labels.locationLoading);
@@ -157,34 +174,117 @@ test('sayfa açılışında konum istenmez; açık eylemle tahmini güneş saatl
     assert.equal(env.records.size, 0); tool.destroy();
 });
 
-test('konum izni reddedilmişse güneş saatleri varsayılan Ankara konumu ile gösterilir', async () => {
-    const env = environment();
-    env.dependencies.navigator.permissions = { query: async () => ({ state: 'denied' }) };
-    const tool = env.tool();
-    await new Promise(resolve => setTimeout(resolve, 0));
-    assert.equal(env.requests.length, 0);
-    assert.equal(tool.locationState, 'ready'); assert.equal(tool.hasLocation, true);
-    assert.equal(tool.locationMessage, labels.locationDefault);
-    assert.equal(tool.solarData.timeZone, 'Europe/Istanbul'); assert.ok(tool.solarData.sunrise);
-    tool.destroy();
+test('konum izni verilmemiş veya reddedilmişse konum istenmez ve güneş bilgileri gösterilmez', async () => {
+    for (const state of ['prompt', 'denied']) {
+        const env = environment(); withPermission(env, state);
+        const tool = env.tool(); await flushPermissions();
+        assert.equal(env.requests.length, 0);
+        assert.equal(tool.locationState, 'idle'); assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null);
+        tool.destroy();
+    }
 });
 
 test('konum izni verilmişse açılışta gerçek konum otomatik kullanılır', async () => {
-    const env = environment();
-    env.dependencies.navigator.permissions = { query: async () => ({ state: 'granted' }) };
-    const tool = env.tool();
-    await new Promise(resolve => setTimeout(resolve, 0));
+    const env = environment(); const status = withPermission(env, 'granted');
+    const tool = env.tool(); await flushPermissions();
     assert.equal(env.requests.length, 1);
+    assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null);
     env.requests[0].success(location());
-    assert.equal(tool.locationState, 'ready'); assert.equal(tool.locationDefault, false);
-    tool.destroy();
+    assert.equal(tool.locationState, 'ready'); assert.equal(tool.hasLocation, true);
+    assert.equal(tool.locationMessage, labels.locationReady);
+    assert.equal(tool.solarData.timeZone, 'Europe/Istanbul');
+    assert.equal(typeof status.onchange, 'function');
+    tool.destroy(); assert.equal(status.onchange, null);
+});
+
+test('sekme açıkken konum izni verilmesi gerçek konumu otomatik alır', async () => {
+    for (const initialState of ['prompt', 'denied']) {
+        const env = environment(); const status = withPermission(env, initialState);
+        const tool = env.tool(); await flushPermissions();
+        assert.equal(env.requests.length, 0); assert.equal(tool.hasLocation, false);
+        changePermission(status, 'granted'); assert.equal(env.requests.length, 1);
+        env.requests[0].success(location()); assert.equal(tool.hasLocation, true); assert.equal(tool.locationState, 'ready');
+        tool.destroy(); assert.equal(status.onchange, null);
+    }
+});
+
+test('izin sonradan kaldırılırsa hesaplanan güneş bilgileri ve konum bellekten temizlenir', async () => {
+    for (const nextState of ['prompt', 'denied']) {
+        const env = environment(); const status = withPermission(env, 'granted');
+        const tool = env.tool(); await flushPermissions(); env.requests[0].success(location());
+        assert.equal(tool.hasLocation, true);
+        changePermission(status, nextState);
+        assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null); assert.equal(tool.locationState, 'idle');
+        tool.tick(); assert.equal(tool.solarData, null); assert.equal(env.requests.length, 1);
+        tool.destroy();
+    }
+});
+
+test('konum alınırken izin kaldırılması gecikmiş konum yanıtını geçersiz kılar', async () => {
+    for (const nextState of ['prompt', 'denied']) {
+        const env = environment(); const status = withPermission(env, 'granted');
+        const tool = env.tool(); await flushPermissions(); assert.equal(tool.locationState, 'loading');
+        changePermission(status, nextState);
+        env.requests[0].success(location()); env.requests[0].error({ code: 1 });
+        assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null); assert.equal(tool.locationState, 'idle');
+        changePermission(status, 'granted'); assert.equal(env.requests.length, 2);
+        env.requests[1].success(location()); assert.equal(tool.hasLocation, true);
+        tool.destroy();
+    }
+});
+
+test('sayfadan ayrılınca izin dinleyicisi ve bekleyen konum isteği kaldırılır', async () => {
+    const env = environment(); const status = withPermission(env, 'granted');
+    const tool = env.tool(); await flushPermissions();
+    const oldChange = status.onchange;
+    tool.destroy(); assert.equal(status.onchange, null);
+    env.requests[0].success(location());
+    status.state = 'granted'; oldChange({ target: status });
+    assert.equal(env.requests.length, 1); assert.equal(tool.solarData, null); assert.equal(tool.hasLocation, false);
+    assert.equal(env.timers.size, 0); assert.equal(env.listeners.size, 0);
+});
+
+test('sayfadan ayrıldıktan sonra tamamlanan izin sorgusu konum isteği veya dinleyici oluşturmaz', async () => {
+    const env = environment(); let resolveQuery;
+    env.dependencies.navigator.permissions = { query: () => new Promise(resolve => { resolveQuery = resolve; }) };
+    const tool = env.tool(); tool.destroy();
+    const status = { state: 'granted', onchange: null };
+    resolveQuery(status); await flushPermissions();
+    assert.equal(env.requests.length, 0); assert.equal(status.onchange, null); assert.equal(tool.solarData, null);
+});
+
+test('Permissions API yoksa veya izin sorgusu hata verirse güneş bölümü gizli kalır', async () => {
+    for (const permissions of [undefined, {}, { query: () => { throw new Error('unsupported'); } }, { query: async () => { throw new Error('unsupported'); } }]) {
+        const env = environment(); env.dependencies.navigator.permissions = permissions;
+        const tool = env.tool(); await flushPermissions();
+        assert.equal(env.requests.length, 0); assert.equal(tool.locationState, 'idle'); assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null);
+        tool.destroy();
+    }
+});
+
+test('otomatik izin kontrolü güvensiz bağlantıda veya konum API yokken konum isteği üretmez', async () => {
+    const insecure = environment(); withPermission(insecure, 'granted'); insecure.dependencies.window.isSecureContext = false;
+    const first = insecure.tool(); await flushPermissions();
+    assert.equal(insecure.requests.length, 0); assert.equal(first.hasLocation, false); assert.equal(first.solarData, null); first.destroy();
+    const unsupported = environment(); withPermission(unsupported, 'granted'); delete unsupported.dependencies.navigator.geolocation;
+    const second = unsupported.tool(); await flushPermissions();
+    assert.equal(unsupported.requests.length, 0); assert.equal(second.hasLocation, false); assert.equal(second.solarData, null); second.destroy();
+});
+
+test('izin verilmiş olsa da konum alma başarısızsa varsayılan konum veya güneş bilgisi gösterilmez', async () => {
+    for (const code of [1, 2, 3]) {
+        const env = environment(); withPermission(env, 'granted');
+        const tool = env.tool(); await flushPermissions(); env.requests[0].error({ code });
+        assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null); assert.equal(env.requests.length, 1);
+        tool.destroy();
+    }
 });
 
 test('konum ve koordinatlar favoriler dahil tarayıcı depolamasına yazılmaz', () => {
     const env = environment(); const tool = env.tool(); tool.requestLocation(); env.requests[0].success(location());
     tool.selectedCityId = 'paris'; tool.addCity();
     assert.deepEqual([...env.records.keys()], [WORLD_CLOCK_STORAGE_KEY]);
-    assert.deepEqual(env.saved(), ['istanbul', 'london', 'new-york', 'tokyo', 'paris']);
+    assert.deepEqual(env.saved(), [...DEFAULT_WORLD_CLOCK_IDS, 'paris']);
     assert.doesNotMatch([...env.records.values()].join(''), /latitude|longitude|41\.0082|28\.9784/);
     tool.clearLocation(); assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null); assert.equal(tool.locationState, 'idle'); tool.destroy();
 });
@@ -256,7 +356,7 @@ test('yüksek enlemde kutup gündüzü/gecesi geçersiz saat yerine açıklama v
 test('güneş hesaplama hatası ve bulunmayan olay kullanıcının diğer saatlerini bozmaz', () => {
     const env = environment(); env.dependencies.solarCalculator = { getTimes: () => { throw new Error('failed'); } };
     const tool = env.tool(); tool.requestLocation(); env.requests[0].success(location());
-    assert.equal(tool.locationMessage, labels.solarUnavailable); assert.equal(tool.solarData, null); assert.equal(tool.selectedCities.length, 4); tool.destroy();
+    assert.equal(tool.locationMessage, labels.solarUnavailable); assert.equal(tool.solarData, null); assert.equal(tool.selectedCities.length, DEFAULT_WORLD_CLOCK_IDS.length); tool.destroy();
     const data = calculateSolarDay({ now: Date.parse('2026-10-13T12:00:00Z'), latitude: 41, longitude: 29, timeZone: 'Europe/Istanbul', labels }, { getTimes: () => ({ sunrise: new Date(NaN), sunset: null }) });
     assert.equal(data.state, 'no-event'); assert.equal(data.daylight, '—'); assert.equal(data.eventMessage, labels.solarNoEvent);
 });

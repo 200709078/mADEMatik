@@ -2,9 +2,16 @@ import { createClockTool } from './clock';
 import { createWorldClockTool } from './world-clocks';
 import { createToastStack } from './toasts';
 import Alpine from 'alpinejs';
-import { createIcons, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide';
+import { createIcons, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Sunrise, Sunset, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer as LucideTimer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity, Volume2, VolumeX, ZoomIn, ZoomOut } from 'lucide';
 
-const iconSet = { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity, Volume2, VolumeX, ZoomIn, ZoomOut };
+// Preserve the clock tool's original stopwatch glyph within the shared icon renderer.
+const Timer = [
+    'svg', LucideTimer[1], [
+        ['circle', { cx: '12', cy: '14', r: '8' }],
+        ['path', { d: 'M9 2h6M12 2v4m6 2 2-2M12 10v4l3 2' }],
+    ],
+];
+const iconSet = { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronDown, Menu, X, Sun, Sunrise, Sunset, Moon, Monitor, Bell, Check, CheckCircle, AlertTriangle, Info, Clock, Timer, Play, Pause, RotateCcw, Maximize, Minimize, Mail, Send, Code2, GraduationCap, Layers, ExternalLink, Search, Filter, User, Users, LogOut, LayoutDashboard, Folder, MessageSquare, Settings, ShieldCheck, MoreHorizontal, Trash2, Edit3, Plus, Image, Eye, EyeOff, FileText, Home, LoaderCircle, Inbox, CircleHelp, Flag, Globe, Heart, Activity, Volume2, VolumeX, ZoomIn, ZoomOut };
 const refreshIcons = () => createIcons({ icons: iconSet, attrs: { 'stroke-width': 1.7 } });
 
 Alpine.data('toastStack', initial => createToastStack(initial, refreshIcons));
@@ -47,6 +54,11 @@ Alpine.data('heroSlider', (count = 3) => ({
 Alpine.data('clockTool', createClockTool);
 Alpine.data('worldClockTool', labels => {
     const tool = createWorldClockTool(labels);
+    const initialize = tool.init;
+    tool.init = function () {
+        this.$watch('hasLocation', ready => { if (ready) this.$nextTick(refreshIcons); });
+        initialize.call(this);
+    };
     for (const method of ['addCity', 'resetCities']) {
         const original = tool[method];
         tool[method] = function (...args) {
