@@ -42,7 +42,7 @@ test('çalışan sayaç sekme yeniden açıldığında saklanan bitiş zamanın�
         assert.equal(env.saved().endsAt - env.saved().startedAt, 120000);
         env.advance(70000); timer.destroy();
         const reopened = createClockTool(labels); reopened.init();
-        assert.equal(reopened.countdownText, '00:00:50'); assert.equal(reopened.running, true);
+        assert.equal(reopened.countdownText, '00:50'); assert.equal(reopened.running, true);
         reopened.destroy();
     } finally { env.restore(); }
 });
@@ -55,9 +55,9 @@ test('duraklama boyunca süre azalmaz; devam edildiğinde kalan süre tamamlanı
         assert.equal(timer.remaining, 40000); assert.equal(env.saved().endsAt, null);
         env.advance(100000); timer.destroy();
         const reopened = createClockTool(labels); reopened.init();
-        assert.equal(reopened.countdownText, '00:00:40'); reopened.start();
+        assert.equal(reopened.countdownText, '00:40'); reopened.start();
         env.advance(40000); reopened.tick();
-        assert.equal(reopened.countdownText, '00:00:00'); assert.equal(reopened.completed, true); assert.equal(reopened.running, false);
+        assert.equal(reopened.countdownText, '00:00'); assert.equal(reopened.completed, true); assert.equal(reopened.running, false);
         assert.equal(env.saved().completed, true); reopened.destroy();
     } finally { env.restore(); }
 });
@@ -141,5 +141,25 @@ test('büyütülmüş sayaç odağı etkin sekme ve son kontrol arasında dolaş
         timer.onExpandedKeydown({ key: 'Tab', shiftKey: true, preventDefault: () => prevented++ });
         assert.equal(document.activeElement, lastButton);
         assert.equal(prevented, 2); timer.destroy();
+    } finally { env.restore(); }
+});
+
+test('süre biçimi bir saatten kısaysa MM:SS, uzunsa HH:MM:SS olur; hazır süreler ve ses tercihi çalışır', () => {
+    const env = environment();
+    try {
+        const timer = createClockTool(labels); timer.init();
+        assert.deepEqual(timer.presetMinutes, [5, 10, 15, 20, 40, 60]);
+        timer.selectPreset(5);
+        assert.equal(timer.countdownText, '05:00');
+        timer.hours = 1; timer.minutes = 2; timer.seconds = 3; timer.applyDuration();
+        assert.equal(timer.total, 3723000); assert.equal(timer.countdownText, '01:02:03');
+        assert.equal(timer.soundOn, true);
+        timer.toggleSound();
+        assert.equal(timer.soundOn, false); assert.equal(JSON.parse(env.records.get('madematik-clock-sound-v1')), false);
+        timer.toggleSound();
+        assert.equal(timer.soundOn, true);
+        for (let i = 0; i < 40; i++) timer.changeZoom(10);
+        assert.equal(timer.zoomPercent, 400);
+        timer.destroy();
     } finally { env.restore(); }
 });

@@ -35,7 +35,7 @@ return [
     'contact_consent' => 'I have read the draft privacy notice.', 'other_connections' => 'Other links', 'email_not_set' => 'The contact email address is not published yet. Please use the form.',
     'clock_intro' => 'View your local time or set aside time for work, a lesson or a break.', 'clock_tab' => 'CLOCK', 'timer_tab' => 'TIMER', 'home_control' => 'HOME',
     'local_time' => 'Local time', 'countdown' => 'Countdown', 'hours' => 'Hours', 'minutes' => 'Minutes', 'seconds' => 'Seconds',
-    'start' => 'Start', 'resume' => 'Resume', 'pause' => 'Pause', 'reset' => 'Reset', 'enlarge' => 'Enlarge', 'shrink' => 'Reduce',
+    'start' => 'Start', 'resume' => 'Resume', 'pause' => 'Pause', 'reset' => 'Reset', 'enlarge' => 'Enlarge', 'shrink' => 'Reduce', 'fullscreen' => 'Fullscreen',
     'timer_complete' => 'Time is up.', 'timer_running' => 'Timer is running', 'timer_paused' => 'Timer is paused', 'timer_ready' => 'Set your time',
     'timer_storage' => 'The timer is saved in this browser. When you reopen the page, it resumes using its end time.',
     'timer_privacy' => 'Clock and timer details are stored in this device’s browser.', 'legal_draft' => 'This is a draft. It requires final legal review and approval before publication.',

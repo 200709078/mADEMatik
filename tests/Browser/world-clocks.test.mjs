@@ -7,7 +7,7 @@ import { DEFAULT_WORLD_CLOCK_IDS, MAX_WORLD_CLOCKS, WORLD_CLOCK_CITIES } from '.
 const labels = {
     locale: 'tr', storageUnavailable: 'Depolama kullanılamıyor.', cityLimitReached: 'En fazla 8 şehir.', invalidCity: 'Geçersiz şehir.',
     sameDay: 'Bugün', previousDay: 'Önceki gün', nextDay: 'Sonraki gün',
-    locationIdle: 'Konumunuzu kullanın.', locationLoading: 'Konum alınıyor.', locationReady: 'Konum hazır.',
+    locationIdle: 'Konumunuzu kullanın.', locationLoading: 'Konum alınıyor.', locationReady: 'Konum hazır.', locationDefault: 'Varsayılan konum.',
     locationDenied: 'İzin verilmedi.', locationUnavailable: 'Konum alınamadı.', locationTimeout: 'Zaman aşımı.',
     locationUnsupported: 'Konum desteklenmiyor.', locationInsecure: 'Güvenli bağlantı gerekli.', locationInvalid: 'Geçersiz konum.',
     solarUnavailable: 'Hesaplanamadı.', polarDay: 'Güneş batmıyor.', polarNight: 'Güneş doğmuyor.', solarNoEvent: 'Olay yok.',
@@ -155,6 +155,29 @@ test('sayfa açılışında konum istenmez; açık eylemle tahmini güneş saatl
     assert.equal(tool.solarData.state, 'normal'); assert.match(tool.solarData.sunrise, /^0[67]:\d{2}$/);
     assert.match(tool.solarData.sunset, /^18:\d{2}$/); assert.match(tool.solarData.daylight, /^11 sa \d+ dk$/);
     assert.equal(env.records.size, 0); tool.destroy();
+});
+
+test('konum izni reddedilmişse güneş saatleri varsayılan Ankara konumu ile gösterilir', async () => {
+    const env = environment();
+    env.dependencies.navigator.permissions = { query: async () => ({ state: 'denied' }) };
+    const tool = env.tool();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(env.requests.length, 0);
+    assert.equal(tool.locationState, 'ready'); assert.equal(tool.hasLocation, true);
+    assert.equal(tool.locationMessage, labels.locationDefault);
+    assert.equal(tool.solarData.timeZone, 'Europe/Istanbul'); assert.ok(tool.solarData.sunrise);
+    tool.destroy();
+});
+
+test('konum izni verilmişse açılışta gerçek konum otomatik kullanılır', async () => {
+    const env = environment();
+    env.dependencies.navigator.permissions = { query: async () => ({ state: 'granted' }) };
+    const tool = env.tool();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(env.requests.length, 1);
+    env.requests[0].success(location());
+    assert.equal(tool.locationState, 'ready'); assert.equal(tool.locationDefault, false);
+    tool.destroy();
 });
 
 test('konum ve koordinatlar favoriler dahil tarayıcı depolamasına yazılmaz', () => {

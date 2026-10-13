@@ -18,9 +18,12 @@ export function createClockTool(labels = {}) {
     notice: '',
     storageKey: 'madematik-clock-v1',
     viewStorageKey: 'madematik-clock-view-v1',
+    soundStorageKey: 'madematik-clock-sound-v1',
+    soundOn: true,
+    audioCtx: null,
     zoomLevels: { clock: 100, timer: 100 },
     viewNotice: '',
-    presetMinutes: [1, 5, 10, 15, 20, 25, 30, 40, 45, 60],
+    presetMinutes: [5, 10, 15, 20, 40, 60],
     init() {
         try {
             let saved;
@@ -48,9 +51,13 @@ export function createClockTool(labels = {}) {
         try {
             const view = JSON.parse(localStorage.getItem(this.viewStorageKey) || 'null');
             for (const mode of ['clock', 'timer']) {
-                if (Number.isInteger(view?.[mode]) && view[mode] >= 60 && view[mode] <= 300 && view[mode] % 10 === 0) this.zoomLevels[mode] = view[mode];
+                if (Number.isInteger(view?.[mode]) && view[mode] >= 60 && view[mode] <= 400 && view[mode] % 10 === 0) this.zoomLevels[mode] = view[mode];
             }
         } catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
+        try {
+            const sound = JSON.parse(localStorage.getItem(this.soundStorageKey) || 'null');
+            if (typeof sound === 'boolean') this.soundOn = sound;
+        } catch (_) { /* ses tercihi okunamazsa varsayılan (açık) korunur */ }
         this.tick();
         this.interval = window.setInterval(() => this.tick(), 200);
         this.onVisibility = () => this.tick();
@@ -83,6 +90,7 @@ export function createClockTool(labels = {}) {
                 this.running = false;
                 this.completed = true;
                 this.persist();
+                this.beep();
             }
         }
     },
@@ -94,7 +102,7 @@ export function createClockTool(labels = {}) {
     get zoomScale() { return this.zoomPercent / 100; },
     changeZoom(change) {
         if (![10, -10, 0].includes(change)) return;
-        this.zoomLevels[this.mode] = change === 0 ? 100 : Math.max(60, Math.min(300, this.zoomPercent + change));
+        this.zoomLevels[this.mode] = change === 0 ? 100 : Math.max(60, Math.min(400, this.zoomPercent + change));
         try { localStorage.setItem(this.viewStorageKey, JSON.stringify(this.zoomLevels)); this.viewNotice = ''; }
         catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
     },
@@ -112,11 +120,26 @@ export function createClockTool(labels = {}) {
         this.persist();
     },
     isPreset(minutes) { return Number(this.hours) * 60 + Number(this.minutes) === minutes && Number(this.seconds) === 0; },
+    readDuration() {
+        const durationPart = (value, maximum) => Math.trunc(Math.min(maximum, Math.max(0, Number(value) || 0)));
+        return (durationPart(this.hours, 99) * 3600 + durationPart(this.minutes, 59) * 60 + durationPart(this.seconds, 59)) * 1000;
+    },
+    applyDuration() {
+        if (this.running) return;
+        const total = this.readDuration();
+        if (!total) { this.notice = this.labels.invalidDuration; return; }
+        this.total = total;
+        this.remaining = this.total;
+        this.startedAt = null;
+        this.endsAt = null;
+        this.completed = false;
+        this.notice = '';
+        this.persist();
+    },
     start() {
         if (this.running) return;
         if (this.completed || this.startedAt === null) {
-            const durationPart = (value, maximum) => Math.trunc(Math.min(maximum, Math.max(0, Number(value) || 0)));
-            const total = (durationPart(this.hours, 99) * 3600 + durationPart(this.minutes, 59) * 60 + durationPart(this.seconds, 59)) * 1000;
+            const total = this.readDuration();
             if (!total) { this.notice = this.labels.invalidDuration; return; }
             this.total = total;
             this.remaining = this.total;
@@ -126,6 +149,7 @@ export function createClockTool(labels = {}) {
         this.endsAt = this.startedAt + this.remaining;
         this.running = true;
         this.completed = false;
+        this.unlockAudio();
         this.persist();
         this.tick();
     },
@@ -150,7 +174,43 @@ export function createClockTool(labels = {}) {
     get remainingPercent() { return Math.max(0, Math.min(100, this.total ? this.remaining / this.total * 100 : 0)); },
     get countdownText() {
         const value = Math.ceil(this.remaining / 1000);
-        return [Math.floor(value / 3600), Math.floor(value / 60) % 60, value % 60].map(part => String(part).padStart(2, '0')).join(':');
+        const parts = [Math.floor(value / 60) % 60, value % 60].map(part => String(part).padStart(2, '0'));
+        if (this.total >= 3600000) parts.unshift(String(Math.floor(value / 3600)).padStart(2, '0'));
+        return parts.join(':');
+    },
+    toggleSound() {
+        this.soundOn = !this.soundOn;
+        try { localStorage.setItem(this.soundStorageKey, JSON.stringify(this.soundOn)); }
+        catch (_) { this.notice = this.labels.storageUnavailable; }
+        if (this.soundOn) this.unlockAudio();
+    },
+    unlockAudio() {
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            if (!this.audioCtx) this.audioCtx = new Ctx();
+            if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+        } catch (_) { /* ses desteklenmiyorsa sessiz devam edilir */ }
+    },
+    beep() {
+        try {
+            if (!this.soundOn) return;
+            this.unlockAudio();
+            const ctx = this.audioCtx;
+            if (!ctx || ctx.state !== 'running') return;
+            [0, 0.3].forEach(delay => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 660;
+                gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + delay + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.2);
+                osc.connect(gain).connect(ctx.destination);
+                osc.start(ctx.currentTime + delay);
+                osc.stop(ctx.currentTime + delay + 0.22);
+            });
+        } catch (_) { /* ses hatası sayacı etkilemez */ }
     },
     async toggleFullscreen() {
         try {

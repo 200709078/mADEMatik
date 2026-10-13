@@ -2,6 +2,7 @@ import * as SunCalc from 'suncalc';
 import { DEFAULT_WORLD_CLOCK_IDS, MAX_WORLD_CLOCKS, WORLD_CLOCK_CITIES } from './world-clock-cities.js';
 
 export const WORLD_CLOCK_STORAGE_KEY = 'madematik-world-clocks-v1';
+export const DEFAULT_SOLAR_LOCATION = { latitude: 39.9334, longitude: 32.8597 };
 
 const DAY_MS = 86400000;
 const formatters = new Map();
@@ -111,6 +112,7 @@ export function createWorldClockTool(labels = {}, environment = {}) {
         worldNotice: '',
         locationState: 'idle',
         locationError: '',
+        locationDefault: false,
         solarData: null,
 
         init() {
@@ -126,6 +128,7 @@ export function createWorldClockTool(labels = {}, environment = {}) {
             } catch (_) { this.worldNotice = labels.storageUnavailable || ''; }
             this.chooseAvailableCity();
             this.tick();
+            this.maybeAutoLocate();
             this.interval = browser.setInterval(() => this.tick(), 1000);
             onVisibility = () => this.tick();
             document.addEventListener('visibilitychange', onVisibility);
@@ -199,9 +202,10 @@ export function createWorldClockTool(labels = {}, environment = {}) {
         get hasLocation() { return this.locationState === 'ready' && this.solarData !== null; },
 
         get locationMessage() {
-            return this.locationState === 'loading' ? labels.locationLoading || ''
-                : this.locationState === 'ready' ? labels.locationReady || ''
-                    : this.locationState === 'error' ? this.locationError : labels.locationIdle || '';
+            if (this.locationState === 'loading') return labels.locationLoading || '';
+            if (this.locationState === 'ready') return this.locationDefault ? labels.locationDefault || '' : labels.locationReady || '';
+            if (this.locationState === 'error') return this.locationError;
+            return labels.locationIdle || '';
         },
 
         clearLocation() {
@@ -210,7 +214,32 @@ export function createWorldClockTool(labels = {}, environment = {}) {
             solarKey = '';
             this.solarData = null;
             this.locationError = '';
+            this.locationDefault = false;
             this.locationState = 'idle';
+        },
+
+        maybeAutoLocate() {
+            try {
+                const query = navigator?.permissions?.query;
+                if (typeof query !== 'function') return;
+                query.call(navigator.permissions, { name: 'geolocation' }).then(
+                    status => {
+                        if (destroyed) return;
+                        if (status?.state === 'granted') this.requestLocation();
+                        else this.useDefaultLocation();
+                    },
+                    () => { if (!destroyed) this.useDefaultLocation(); },
+                );
+            } catch (_) { /* konum yoksa güneş bölümü gizli kalır */ }
+        },
+
+        useDefaultLocation() {
+            if (destroyed || coordinates || this.locationState === 'loading') return;
+            coordinates = { ...DEFAULT_SOLAR_LOCATION };
+            this.worldNow = now();
+            this.locationDefault = true;
+            this.locationState = 'ready';
+            this.refreshSolar();
         },
 
         refreshSolar() {
@@ -239,6 +268,7 @@ export function createWorldClockTool(labels = {}, environment = {}) {
             solarKey = '';
             this.solarData = null;
             this.locationError = '';
+            this.locationDefault = false;
             this.locationState = 'loading';
             const current = () => !destroyed && !settled && version === requestVersion;
             const fail = error => {

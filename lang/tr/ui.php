@@ -35,7 +35,7 @@ return [
     'contact_consent' => 'Gizlilik ve KVKK aydınlatma taslağını okudum.', 'other_connections' => 'Diğer bağlantılar', 'email_not_set' => 'İletişim e-posta adresi henüz yayınlanmadı. Formu kullanabilirsiniz.',
     'clock_intro' => 'Yerel saatinizi görün veya işinize, dersinize ve molanıza bir süre ayırın.', 'clock_tab' => 'SAAT', 'timer_tab' => 'SAYAÇ', 'home_control' => 'ANA SAYFA',
     'local_time' => 'Yerel saat', 'countdown' => 'Geri sayım', 'hours' => 'Saat', 'minutes' => 'Dakika', 'seconds' => 'Saniye',
-    'start' => 'Başlat', 'resume' => 'Devam Et', 'pause' => 'Duraklat', 'reset' => 'Sıfırla', 'enlarge' => 'Büyüt', 'shrink' => 'Küçült',
+    'start' => 'Başlat', 'resume' => 'Devam Et', 'pause' => 'Duraklat', 'reset' => 'Sıfırla', 'enlarge' => 'Büyüt', 'shrink' => 'Küçült', 'fullscreen' => 'Tam Ekran',
     'timer_complete' => 'Süre tamamlandı.', 'timer_running' => 'Sayaç çalışıyor', 'timer_paused' => 'Sayaç duraklatıldı', 'timer_ready' => 'Sürenizi belirleyin',
     'timer_storage' => 'Sayaç bu tarayıcıda saklanır. Sayfayı yeniden açtığınızda bitiş zamanı üzerinden devam eder.',
     'timer_privacy' => 'Saat ve sayaç bilgileri bu cihazın tarayıcısında tutulur.', 'legal_draft' => 'Bu metin taslaktır. Yayın öncesinde nihai hukuki değerlendirme ve onay gerektirir.',

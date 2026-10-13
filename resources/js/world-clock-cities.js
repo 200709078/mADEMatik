@@ -1,6 +1,6 @@
 export const WORLD_CLOCK_CITIES = Object.freeze([
-    { id: 'istanbul', timeZone: 'Europe/Istanbul', name: { tr: 'İstanbul', en: 'Istanbul' } },
     { id: 'ankara', timeZone: 'Europe/Istanbul', name: { tr: 'Ankara', en: 'Ankara' } },
+    { id: 'istanbul', timeZone: 'Europe/Istanbul', name: { tr: 'İstanbul', en: 'Istanbul' } },
     { id: 'london', timeZone: 'Europe/London', name: { tr: 'Londra', en: 'London' } },
     { id: 'paris', timeZone: 'Europe/Paris', name: { tr: 'Paris', en: 'Paris' } },
     { id: 'berlin', timeZone: 'Europe/Berlin', name: { tr: 'Berlin', en: 'Berlin' } },
