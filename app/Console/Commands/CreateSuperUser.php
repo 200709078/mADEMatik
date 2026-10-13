@@ -18,7 +18,7 @@ class CreateSuperUser extends Command
     public function handle(): int
     {
         if (! $this->input->isInteractive()) { $this->error('Bu komut etkileşimli terminal gerektirir. Parolayı komut satırına yazmayın.'); return self::FAILURE; }
-        $name = $this->ask('Ad soyad');
+        $name = $this->ask('Ad Soyad');
         $email = Str::lower((string) $this->ask('Yeni ve ayrı yönetici e-posta adresi'));
         $password = $this->secret('Parola (en az 12 karakter, büyük/küçük harf, rakam ve sembol)');
         $confirmation = $this->secret('Parolayı tekrar girin');

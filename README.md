@@ -54,6 +54,8 @@ Bu bağlantıda özel soket veya `ext=pdo` seçimi gerekmez. Adminer üzerinden 
 
 Ana sayfa, Hakkımda, Projelerim ve detayları, Yorumlar, Saat & Sayaç, İletişim, üyelik/profil/bildirim sayfaları ve yalnızca Super User erişimine açık `/admin` bulunur. Yönetim panelinden proje, kategori, medya, slider, sayfa/site ayarları, yorum, üye ve iletişim yönetimi yapılır.
 
+`/sitemap.xml` yalnız açık sayfaları ve yayımlanmış proje adreslerini içerir. `php artisan madematik:generate-sitemap` özel XML dosyasını üretir; üretimde Laravel scheduler bu komutu saatlik çalıştırır. Canlı cPanel cron girdisi, URL ayarı ve gizlilik önlemleri [sitemap belgesinde](docs/sitemap.md) açıklanır. Kullanıcılar ve özel backend kayıtları sitemap'e dahil edilmez; aWa veritabanına bağlantı kurulmaz.
+
 `/profilim` sayfasının üst bölümünden profil fotoğrafı eklenir, değiştirilir veya kaldırılır; seçilen görsel kaydetmeden önce önizlenir. Fotoğraf üst kullanıcı menüsünde ve yorumlarda da kullanılır. Fotoğraf olmadığında veya yüklenemediğinde ad/soyad baş harfleri görünür (örneğin Adem VAROL → AV). JPG, PNG ve WebP için 2 MB, 4096 piksel kenar ve 12 megapiksel sınırı vardır; görsel merkezden kare kırpılıp en fazla 512×512 WebP olarak yeniden kodlanır, küçük görsel büyütülmez.
 
 Yeni yorum, yanıt ve düzenleme `pending` olarak kaydedilir. Yalnızca Super User onayından geçen içerik halka görünür. Yorum yazmak için doğrulanmış üyelik gerekir. İletişim adresi başlangıçta boş bırakılır; yönetici gerçek kurumsal adresi site ayarlarından girer. Gizlilik, üyelik ve aydınlatma metinleri hukukî onay bekleyen taslaklardır.

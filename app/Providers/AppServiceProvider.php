@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Keep error details private even when an old config cache enabled debug.
+        if ($this->app->isProduction()) config(['app.debug' => false]);
         // Laravel skips console event wiring in testing; database safety must still apply.
         if (app()->runningUnitTests()) app(\Illuminate\Contracts\Console\Kernel::class)->rerouteSymfonyCommandEvents();
         \Illuminate\Support\Facades\Gate::define('admin', fn (\App\Models\User $user) => $user->isSuperUser());

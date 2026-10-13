@@ -1,17 +1,33 @@
 <?php
+
 namespace App\Http\Controllers;
-use App\Models\Project;
+
+use App\Services\Sitemap;
+use Illuminate\Http\Response;
+
 class SeoController extends Controller
 {
-    public function sitemap()
+    public function sitemap(Sitemap $sitemap): Response
     {
-        $urls=collect(['home','about','projects.index','comments.index','clock','contact'])->map(fn($name)=>['url'=>route($name),'modified'=>null]);
-        Project::published()->orderBy('id')->each(fn($project)=>$urls->push(['url'=>route('projects.show',$project->slug),'modified'=>$project->updated_at->toAtomString()]));
-        return response()->view('seo.sitemap',['urls'=>$urls])->header('Content-Type','application/xml; charset=UTF-8');
+        // Read current publication state rather than serving a stale cron snapshot.
+        return response($sitemap->render(), 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Cache-Control' => 'no-store',
+        ]);
     }
-    public function robots()
+
+    public function robots(Sitemap $sitemap): Response
     {
-        $body=app()->isProduction() ? "User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /profilim\nDisallow: /bildirimler\nSitemap: ".route('sitemap')."\n" : "User-agent: *\nDisallow: /\n";
-        return response($body,200,['Content-Type'=>'text/plain; charset=UTF-8']);
+        $body = "User-agent: *\nDisallow: /\n";
+        if (app()->isProduction()) {
+            $body = "User-agent: *\nAllow: /\n";
+            foreach (['/admin', '/profilim', '/bildirimler', '/giris', '/kayit', '/sifremi-unuttum',
+                '/sifre-sifirla', '/eposta-dogrula', '/eposta-dogrulama-bildirimi', '/sifre-onayi', '/cikis'] as $path) {
+                $body .= "Disallow: {$path}\n";
+            }
+            $body .= 'Sitemap: '.$sitemap->canonicalUrl('sitemap')."\n";
+        }
+
+        return response($body, 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }
 }

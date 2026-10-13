@@ -1,3 +1,9 @@
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(?:\.env(?:\..*)?|composer\.(?:json|lock)|artisan)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

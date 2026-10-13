@@ -160,7 +160,7 @@
 <x-ui.alert type="warning">Bu metinler hukuki inceleme için taslaktır. Yayın öncesi veri sorumlusu bilgileri, saklama koşulları ve başvuru kanalları tamamlanmalıdır.
 </x-ui.alert>
 
-@foreach(['privacy'=>'Gizlilik ve aydınlatma','terms'=>'Üyelik ve kullanım koşulları','membership'=>'Üyelik aydınlatma metni'] as $field=>$label)
+@foreach(['privacy'=>'Gizlilik ve Adınlatma','terms'=>'Üyelik ve Kullanım Koşulları','membership'=>'Üyelik Aydınlatma Metni'] as $field=>$label)
 <x-ui.textarea :name="'legal['.$field.']'" :label="$label" :value="old('legal.'.$field,$settings['legal'][$field] ?? '')" :error="$errors->first('legal.'.$field)" rows="10" />
 
 @endforeach

@@ -12,6 +12,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     use HasFactory, Notifiable;
     protected $fillable = ['name','email','password','locale'];
     protected $hidden = ['password','remember_token'];
+    // Only the public identity fields may leave the model as an array or JSON.
+    protected $visible = ['id','name','locale'];
     protected function casts(): array { return ['email_verified_at'=>'datetime','password'=>'hashed','is_blocked'=>'boolean','deletion_requested_at'=>'datetime']; }
     public function isSuperUser(): bool { return $this->role === 'super_user' && !$this->is_blocked; }
     public function comments(): HasMany { return $this->hasMany(Comment::class); }

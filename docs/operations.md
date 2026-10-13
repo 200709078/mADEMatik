@@ -76,11 +76,13 @@ Paylaşımlı cPanel sunucusunda sürekli worker desteklenmiyorsa her dakika sı
 
 `flock` desteği yoksa hostingin eşdeğer çakışma kilidi veya yönetilen worker çözümü kullanılmalı; aynı kuyruğu sınırsız paralel süreçlerle tüketmekten kaçınılmalıdır. Job timeout değeri bağlantının `retry_after` değerinden kısa olmalıdır. Süre sınırı 60 saniyelik cron aralığının altında kalır. Gönderim başarısızlıkları `php artisan queue:failed` ile izlenir; tekrar denemeden önce SMTP sorunu düzeltilir ve mükerrer gönderim riski değerlendirilir. Worker çalışmıyorsa kurulum tamamlanmış sayılmaz; kuyruk derinliği ve başarısız işler takip edilir.
 
-Uygulama zamanlanmış görev kullanıyorsa ayrıca tek cron tanımlanır:
+Sitemap üretimi artık Laravel zamanlayıcısında yalnız üretimde saatte bir çalışacak şekilde tanımlıdır. Onaylı canlı kurulumda aşağıdaki tek cron etkinleştirilir; mevcut `schedule:run` girdisi varsa ikinci bir tane eklenmez:
 
 ```cron
 * * * * * /usr/local/bin/php /home/ACCOUNT/apps/madematik/artisan schedule:run >> /home/ACCOUNT/apps/madematik/storage/logs/scheduler.log 2>&1
 ```
+
+İlk dosya `php artisan madematik:generate-sitemap` ile hazırlanır. Çıktı özel `storage/app/private/seo/sitemap.xml` altında kalır; `/sitemap.xml` yalnız güncel açık URL'leri sunar. Görev, dosya izinleri ve veri kapsamı [sitemap belgesinde](sitemap.md) açıklanır. Bu örnek sunucuya uygulanmadı; PHP ve hesap yolları canlı onay sonrası doğrulanır.
 
 SMTP değerleri, gerçek alıcılar ve DNS/SPF/DKIM ayarları ancak canlı yayın hazırlığına yönelik açık onay kapsamında uygulanır. Kapsamlı testler sahte mail/log veya kullanıcının onayladığı test SMTP üzerinde yürür.
 

@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         foreach (config('content') as $key=>$value) Setting::firstOrCreate(['key'=>$key],['value'=>$value]);
-        $tools=ProjectCategory::firstOrCreate(['slug'=>'dijital-araclar'],['name'=>['tr'=>'Dijital araçlar'],'sort_order'=>1]);
-        $education=ProjectCategory::firstOrCreate(['slug'=>'egitim-matematik'],['name'=>['tr'=>'Eğitim & matematik'],'sort_order'=>2]);
+        $tools=ProjectCategory::firstOrCreate(['slug'=>'dijital-araclar'],['name'=>['tr'=>'Dijital Araçlar'],'sort_order'=>1]);
+        $education=ProjectCategory::firstOrCreate(['slug'=>'egitim-matematik'],['name'=>['tr'=>'Eğitim & Matematik'],'sort_order'=>2]);
         $management=ProjectCategory::firstOrCreate(['slug'=>'yonetim'],['name'=>['tr'=>'Yönetim'],'sort_order'=>3]);
         $items=[
             ['draw','drAW',$tools->id,'Etkileşimli beyaz tahta ve çizim uygulaması.','Çizim ve eğitim amaçlı kullanılabilen bağımsız beyaz tahta uygulaması.',['Etkileşimli çizim alanı'],['TypeScript','Vite','Electron'],'https://madematik.com/drAW'],

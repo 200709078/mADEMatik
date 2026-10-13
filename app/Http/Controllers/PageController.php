@@ -24,7 +24,7 @@ class PageController extends Controller
     public function contact() { return $this->page('pages.contact','İletişim'); }
     public function legal(string $document)
     {
-        $titles=['privacy'=>'Gizlilik ve KVKK','terms'=>'Kullanım koşulları','membership'=>'Üyelik aydınlatma metni'];
+        $titles=['privacy'=>'Gizlilik ve KVKK','terms'=>'Kullanım koşulları','membership'=>'Üyelik Aydınlatma Metni'];
         abort_unless(isset($titles[$document]),404);
         return $this->page('pages.legal',$titles[$document],['title'=>$titles[$document],'body'=>Settings::localized('legal')[$document]??'']);
     }

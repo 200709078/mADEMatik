@@ -21,7 +21,7 @@ class ClockProjectSeeder extends Seeder
             }
 
             $category = ProjectCategory::firstOrCreate(['slug' => 'dijital-araclar'], [
-                'name' => ['tr' => 'Dijital araçlar'],
+                'name' => ['tr' => 'Dijital Araçlar'],
                 'sort_order' => (int) ProjectCategory::max('sort_order') + 1,
             ]);
 

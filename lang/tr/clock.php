@@ -21,7 +21,7 @@ return [
     'zoom_reset_title' => 'Varsayılan',
     'noscript' => 'Saat ve sayaç için tarayıcınızda JavaScript’i etkinleştirin.',
     'progress' => 'Kalan süre',
-    'world_title' => 'Dünya saatleri',
+    'world_title' => 'Dünya Saatleri',
     'world_intro' => 'Farklı şehirlerin saatini aynı anda takip edin.',
     'city' => 'Şehir Seçin',
     'add_city' => 'Şehir Ekle',

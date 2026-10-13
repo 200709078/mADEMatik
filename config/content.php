@@ -21,9 +21,9 @@ return [
     ]],
     'contact'=>['tr'=>['title'=>'Birlikte konuşalım.','lead'=>'Proje fikirleri, iş birliği ve geri bildirimler için buradayım.','email'=>'']],
     'sliders'=>['tr'=>[
-        ['title'=>'Fikirleri işe yarayan çözümlere dönüştürüyorum.','description'=>'mADEMatik Solutions ile eğitim, yazılım ve teknoloji aynı yerde buluşuyor.','cta_label'=>'Beni tanıyın','cta_url'=>'/hakkimda','image'=>'banners/slider-01-madematik.webp','mobile_image'=>'banners/slider-01-madematik-mobile.webp'],
-        ['title'=>'Her proje, yeni bir olasılık.','description'=>'Çizimden geometriye, çalışma kitaplarından okul yönetimine: geliştirdiğim bağımsız uygulamaları keşfedin.','cta_label'=>'Projeleri keşfedin','cta_url'=>'/projelerim','image'=>'banners/slider-02-projelerim.webp','mobile_image'=>'banners/slider-02-projelerim-mobile.webp'],
-        ['title'=>'Öğrenmek için teknoloji.','description'=>'Merakı destekleyen, öğrenmeyi görünür kılan etkileşimli araçlar.','cta_label'=>'Yaklaşımımı inceleyin','cta_url'=>'/hakkimda','image'=>'banners/slider-03-egitim-teknoloji.webp','mobile_image'=>'banners/slider-03-egitim-teknoloji-mobile.webp'],
+        ['title'=>'Fikirleri işe yarayan çözümlere dönüştürüyorum.','description'=>'mADEMatik Solutions ile eğitim, yazılım ve teknoloji aynı yerde buluşuyor.','cta_label'=>'Beni Tanıyın','cta_url'=>'/hakkimda','image'=>'banners/slider-01-madematik.webp','mobile_image'=>'banners/slider-01-madematik-mobile.webp'],
+        ['title'=>'Her proje, yeni bir olasılık.','description'=>'Çizimden geometriye, çalışma kitaplarından okul yönetimine: geliştirdiğim bağımsız uygulamaları keşfedin.','cta_label'=>'Projeleri Keşfedin','cta_url'=>'/projelerim','image'=>'banners/slider-02-projelerim.webp','mobile_image'=>'banners/slider-02-projelerim-mobile.webp'],
+        ['title'=>'Öğrenmek için teknoloji.','description'=>'Merakı destekleyen, öğrenmeyi görünür kılan etkileşimli araçlar.','cta_label'=>'Yaklaşımımı İnceleyin','cta_url'=>'/hakkimda','image'=>'banners/slider-03-egitim-teknoloji.webp','mobile_image'=>'banners/slider-03-egitim-teknoloji-mobile.webp'],
     ]],
     'social'=>['tr'=>[]],
     'footer'=>['tr'=>['description'=>'Eğitim, yazılım ve teknoloji için üretiyorum.','copyright'=>'mADEMatik Solutions. Tüm hakları saklıdır.']],
