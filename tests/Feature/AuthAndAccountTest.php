@@ -17,7 +17,7 @@ use Tests\TestCase;
 class AuthAndAccountTest extends TestCase
 {
     private const PASSWORD = 'ExamplePassword123!';
-    private const NEW_PASSWORD = 'DifferentPassword456!';
+    private const NEW_PASSWORD = 'Aa1!bc';
 
     private function account(bool $verified = true, bool $superUser = false): User
     {
@@ -28,7 +28,7 @@ class AuthAndAccountTest extends TestCase
 
     private function registration(array $overrides = []): array
     {
-        return array_replace(['name' => 'Deneme Üyesi', 'email' => 'new-member@example.test', 'password' => self::PASSWORD, 'password_confirmation' => self::PASSWORD, 'terms' => '1', 'website' => ''], $overrides);
+        return array_replace(['name' => 'Deneme Üyesi', 'email' => 'new-member@example.test', 'password' => self::NEW_PASSWORD, 'password_confirmation' => self::NEW_PASSWORD, 'terms' => '1', 'website' => ''], $overrides);
     }
 
     private function verificationUrl(User $user, int $minutes = 60): string
@@ -43,10 +43,10 @@ class AuthAndAccountTest extends TestCase
 
     public function test_authentication_pages_show_turkish_labeled_forms(): void
     {
-        $this->get(route('login'))->assertOk()->assertSee('Giriş Yap')->assertSee('E-posta adresi')->assertSee('autocomplete="current-password"', false);
-        $this->get(route('register'))->assertOk()->assertSee('Kayıt Ol')->assertSee('sembol')->assertSee('name="terms"', false);
+        $this->get(route('login'))->assertOk()->assertSee('Giriş Yap')->assertSee('E-Posta Adresi')->assertSee('autocomplete="current-password"', false);
+        $this->get(route('register'))->assertOk()->assertSee('Kayıt Ol')->assertSee('En az 6 karakter')->assertSee('sembol')->assertSee('minlength="6"', false)->assertDontSee('minlength="12"', false)->assertSee('name="terms"', false);
         $this->get(route('password.request'))->assertOk()->assertSee('Sıfırlama Bağlantısı Gönder');
-        $this->get(route('password.reset', ['token' => 'test-token', 'email' => 'new-member@example.test']))->assertOk()->assertSee('Yeni parola');
+        $this->get(route('password.reset', ['token' => 'test-token', 'email' => 'new-member@example.test']))->assertOk()->assertSee('Yeni parola')->assertSee('En az 6 karakter')->assertSee('minlength="6"', false)->assertDontSee('minlength="12"', false);
     }
 
     public function test_registration_normalizes_email_sends_verification_and_never_accepts_privileged_fields(): void
@@ -61,7 +61,7 @@ class AuthAndAccountTest extends TestCase
         $this->assertSame('tr', $user->locale);
         $this->assertNull($user->email_verified_at);
         $this->assertFalse($user->is_blocked);
-        $this->assertTrue(Hash::check(self::PASSWORD, $user->password));
+        $this->assertTrue(Hash::check(self::NEW_PASSWORD, $user->password));
         $this->assertNotSame($before, $this->app['session']->getId());
         $this->assertFalse($user->notificationPreference->comment_mail);
         $this->assertFalse($user->notificationPreference->reply_mail);
@@ -73,7 +73,7 @@ class AuthAndAccountTest extends TestCase
     public static function rejectedRegistrations(): array
     {
         return [
-            'short password' => [['password' => 'Tiny123!', 'password_confirmation' => 'Tiny123!'], 'password'],
+            'five character password' => [['password' => 'Aa1!b', 'password_confirmation' => 'Aa1!b'], 'password'],
             'password without symbol' => [['password' => 'ExamplePassword123', 'password_confirmation' => 'ExamplePassword123'], 'password'],
             'password without mixed case' => [['password' => 'examplepassword123!', 'password_confirmation' => 'examplepassword123!'], 'password'],
             'missing consent' => [['terms' => '0'], 'terms'],
@@ -252,7 +252,7 @@ class AuthAndAccountTest extends TestCase
         $oldHash = $user->password;
         $this->post(route('password.store'), ['token' => 'invalid', 'email' => $user->email, 'password' => self::NEW_PASSWORD, 'password_confirmation' => self::NEW_PASSWORD])->assertSessionHasErrors('email');
         $token = Password::createToken($user);
-        $this->post(route('password.store'), ['token' => $token, 'email' => $user->email, 'password' => 'weak', 'password_confirmation' => 'weak'])->assertSessionHasErrors('password');
+        $this->post(route('password.store'), ['token' => $token, 'email' => $user->email, 'password' => 'Aa1!b', 'password_confirmation' => 'Aa1!b'])->assertSessionHasErrors('password');
         $this->assertSame($oldHash, $user->fresh()->password);
         $this->assertTrue(Password::tokenExists($user, $token));
     }
@@ -270,7 +270,7 @@ class AuthAndAccountTest extends TestCase
     {
         $user = $this->account();
         $oldHash = $user->password;
-        $this->actingAs($user)->put(route('profile.password'), ['current_password' => self::PASSWORD, 'password' => 'weak', 'password_confirmation' => 'weak'])->assertSessionHasErrors('password');
+        $this->actingAs($user)->put(route('profile.password'), ['current_password' => self::PASSWORD, 'password' => 'Aa1!b', 'password_confirmation' => 'Aa1!b'])->assertSessionHasErrors('password');
         $this->assertSame($oldHash, $user->fresh()->password);
         $this->assertSame('previous-remember-token', $user->fresh()->remember_token);
     }
@@ -335,7 +335,7 @@ class AuthAndAccountTest extends TestCase
     public function test_preferences_start_with_optional_mail_disabled_and_can_be_opted_in_and_out(): void
     {
         $user = $this->account();
-        $this->actingAs($user)->get(route('profile.edit'))->assertOk()->assertSee('Bildirim tercihlerim');
+        $this->actingAs($user)->get(route('profile.edit'))->assertOk()->assertSee('Bildirim tercihlerim')->assertSee('En az 6 karakter')->assertSee('minlength="6"', false)->assertDontSee('minlength="12"', false);
         $preference = $user->notificationPreference()->sole();
         $this->assertFalse($preference->comment_mail);
         $this->assertFalse($preference->reply_mail);

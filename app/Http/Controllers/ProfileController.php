@@ -88,7 +88,7 @@ class ProfileController extends Controller
             ActivityLog::record('account.deletion_requested', $user);
             return $message;
         });
-        $notifications->superUsers('account.deletion_requested', 'Hesap silme talebi', 'Bir üye hesap ve kişisel veri silme talebinde bulundu.', route('admin.contact-messages.show', $message));
+        $notifications->superUsers('account.deletion_requested', 'Hesap silme talebi', 'Bir üye hesap ve kişisel veri silme talebinde bulundu.', route('admin.contact-messages.show', $message), ['contact_message_id' => $message->getKey()]);
         return back()->with('status', 'Silme talebiniz yöneticiye iletildi. İşlem sonucu sizinle paylaşılacak.');
     }
 }

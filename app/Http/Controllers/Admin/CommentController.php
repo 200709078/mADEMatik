@@ -14,7 +14,7 @@ class CommentController extends Controller
     public function index(Request $request)
     {
         $filters=$request->validate(['q'=>['nullable','string','max:100'],'status'=>['nullable','string',Rule::in(['pending','approved','rejected','hidden','all'])]]);
-        $status = $filters['status'] ?? 'pending';
+        $status = $filters['status'] ?? 'all';
         $query = Comment::with('user', 'project', 'parent')->latest();
         if (in_array($status, ['pending', 'approved', 'rejected', 'hidden'], true)) { $query->where('status', $status); }
         if (($filters['q']??'')!=='') $query->where('body','like','%'.addcslashes($filters['q'],'%_\\').'%');

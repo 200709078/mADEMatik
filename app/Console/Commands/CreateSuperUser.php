@@ -20,7 +20,7 @@ class CreateSuperUser extends Command
         if (! $this->input->isInteractive()) { $this->error('Bu komut etkileşimli terminal gerektirir. Parolayı komut satırına yazmayın.'); return self::FAILURE; }
         $name = $this->ask('Ad Soyad');
         $email = Str::lower((string) $this->ask('Yeni ve ayrı yönetici e-posta adresi'));
-        $password = $this->secret('Parola (en az 12 karakter, büyük/küçük harf, rakam ve sembol)');
+        $password = $this->secret('Parola (en az 6 karakter, büyük/küçük harf, rakam ve sembol)');
         $confirmation = $this->secret('Parolayı tekrar girin');
         $validator = Validator::make(['name' => $name, 'email' => $email, 'password' => $password, 'password_confirmation' => $confirmation], ['name' => ['required', 'string', 'min:2', 'max:100'], 'email' => ['required', 'email', 'max:254', 'unique:users,email'], 'password' => ['required', 'confirmed', Password::defaults()]]);
         if ($validator->fails()) { foreach ($validator->errors()->all() as $error) { $this->error($error); } return self::FAILURE; }

@@ -9,7 +9,7 @@
     </div>
     <div x-data="clockTool(@js(['storageUnavailable'=>__('ui.timer_storage_unavailable'),'zoomStorageUnavailable'=>__('clock.zoom_storage_unavailable'),'invalidDuration'=>__('ui.timer_invalid_duration'),'shrink'=>__('ui.shrink'),'enlarge'=>__('ui.enlarge'),'soundOn'=>__('clock.sound_on'),'soundOff'=>__('clock.sound_off')]))" @keydown.escape.window="expanded=false" x-effect="document.body.style.overflow = expanded ? 'hidden' : ''">
         <div x-ref="panel" data-testid="clock-panel" class="clock-panel card p-6 sm:p-10" :style="{'--clock-zoom':zoomScale}" :class="{'clock-panel-expanded':expanded}" :role="expanded ? 'dialog' : null" :aria-modal="expanded ? 'true' : null" aria-label="{{ __('ui.clock') }}">
-            <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div data-testid="clock-toolbar" class="clock-toolbar mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex gap-1 rounded-xl surface-muted p-1">
                     <a href="{{ route('home') }}" class="button button-sm button-ghost button-icon" aria-label="{{ __('ui.home_control') }}" title="{{ __('ui.home_control') }}"><x-icon name="home" class="h-4 w-4" /></a>
                     <div class="flex gap-1" role="tablist" aria-label="{{ __('ui.clock') }}">
@@ -19,10 +19,12 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <x-theme-toggle data-testid="clock-theme" />
-                    <x-ui.button x-cloak x-show="mode==='timer'" data-testid="clock-sound" variant="ghost" size="sm" class="button-icon" @click="toggleSound()" ::aria-pressed="soundOn ? 'true' : 'false'" ::aria-label="soundOn ? labels.soundOn : labels.soundOff" ::title="soundOn ? labels.soundOn : labels.soundOff">
-                        <span x-show="soundOn"><x-icon name="volume-2" class="h-4 w-4" /></span>
-                        <span x-cloak x-show="!soundOn"><x-icon name="volume-x" class="h-4 w-4" /></span>
-                    </x-ui.button>
+                    <div x-cloak x-show="mode==='timer'||fullScreen||expanded" class="clock-sound-slot flex shrink-0 items-center justify-center">
+                        <x-ui.button x-cloak x-show="mode==='timer'" data-testid="clock-sound" variant="ghost" size="sm" class="button-icon" @click="toggleSound()" ::aria-pressed="soundOn ? 'true' : 'false'" ::aria-label="soundOn ? labels.soundOn : labels.soundOff" ::title="soundOn ? labels.soundOn : labels.soundOff">
+                            <span x-show="soundOn"><x-icon name="volume-2" class="h-4 w-4" /></span>
+                            <span x-cloak x-show="!soundOn"><x-icon name="volume-x" class="h-4 w-4" /></span>
+                        </x-ui.button>
+                    </div>
                     <div class="flex w-fit items-center gap-1 rounded-xl surface-muted p-1" role="group" aria-label="{{ __('clock.zoom') }}">
                         <x-ui.button variant="ghost" size="sm" class="button-icon" @click="changeZoom(-10)" ::disabled="zoomPercent<=60" :aria-label="__('clock.zoom_out')" title="{{ __('clock.zoom_out_title') }}"><x-icon name="zoom-out" class="h-4 w-4" /></x-ui.button>
                         <x-ui.button variant="ghost" size="sm" class="min-w-16 font-mono tabular-nums" @click="changeZoom(0)" :aria-label="__('clock.zoom_reset')" title="{{ __('clock.zoom_reset_title') }}"><span x-text="zoomPercent+'%'" aria-live="polite">100%</span></x-ui.button>
@@ -34,6 +36,7 @@
                     </x-ui.button>
                 </div>
             </div>
+            <div data-testid="clock-content" class="clock-panel-content">
             <div id="clock-display" role="tabpanel" aria-labelledby="clock-tab" x-show="mode==='clock'" class="surface-muted mb-6 rounded-xl py-10 text-center">
                 <h2 class="text-muted mb-6 text-lg font-medium">{{ __('clock.now') }}</h2>
                 <time class="clock-face block" x-text="clockText" :datetime="new Date(now).toISOString()"></time>
@@ -79,6 +82,7 @@
             <p x-cloak x-show="notice" x-text="notice" role="status" class="mt-4 text-center text-sm text-[var(--warning)]"></p>
             <p x-cloak x-show="viewNotice" x-text="viewNotice" role="status" class="mt-4 text-center text-sm text-[var(--warning)]"></p>
             <p class="text-muted border-t border-[var(--border)] pt-6 text-center text-sm">{{ __('clock.tagline') }}</p>
+            </div>
         </div>
         <noscript><p class="mt-5 text-center text-sm text-muted">{{ __('clock.noscript') }}</p></noscript>
         @include('pages.clock.world-times')

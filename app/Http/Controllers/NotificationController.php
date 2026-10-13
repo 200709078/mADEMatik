@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ContactMessageNotifications;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request) { return view('notifications.index', ['notifications' => $request->user()->notifications()->latest()->paginate(20)]); }
+    public function index(Request $request, ContactMessageNotifications $notifications)
+    {
+        $notifications->syncLegacy($request->user());
+        return view('notifications.index', ['notifications' => $request->user()->notifications()->latest()->paginate(20)]);
+    }
     public function read(Request $request, string $notification)
     {
         $request->user()->notifications()->findOrFail($notification)->markAsRead();

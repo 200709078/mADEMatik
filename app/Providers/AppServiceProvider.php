@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // Laravel skips console event wiring in testing; database safety must still apply.
         if (app()->runningUnitTests()) app(\Illuminate\Contracts\Console\Kernel::class)->rerouteSymfonyCommandEvents();
         \Illuminate\Support\Facades\Gate::define('admin', fn (\App\Models\User $user) => $user->isSuperUser());
-        \Illuminate\Validation\Rules\Password::defaults(fn () => \Illuminate\Validation\Rules\Password::min(12)->mixedCase()->numbers()->symbols());
+        \Illuminate\Validation\Rules\Password::defaults(fn () => \Illuminate\Validation\Rules\Password::min(6)->mixedCase()->numbers()->symbols());
         if (! app()->isProduction()) config(['mail.default' => 'log']);
         \Illuminate\Support\Facades\View::composer(['layouts.app','layouts.admin'], function ($view) {
             try { $settings=\App\Services\Settings::allLocalized(); }

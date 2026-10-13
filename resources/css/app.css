@@ -164,10 +164,12 @@
     .admin-content h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; }
     .clock-panel { container-type: inline-size; }
     .clock-face { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: min(calc(clamp(3rem, 10vw, 8rem) * var(--clock-zoom, 1)), 20cqi); font-weight: 600; line-height: 1.15; letter-spacing: -.05em; white-space: nowrap; }
-    .clock-panel:fullscreen { display: grid; align-content: safe center; overflow-y: auto; background: var(--page); padding: clamp(1rem, 3vw, 2rem); border-radius: 0; }
-    .clock-panel:fullscreen .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
-    .clock-panel-expanded { position: fixed; inset: 0; z-index: 60; display: grid; align-content: safe center; overflow-y: auto; background: var(--page); border-radius: 0; padding: clamp(1rem, 3vw, 2rem); }
-    .clock-panel-expanded .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) { display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; background: var(--page); padding: clamp(1rem, 3vw, 2rem); border-radius: 0; }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-panel-content { min-height: 0; display: flex; flex-direction: column; justify-content: safe center; overflow-y: auto; }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-panel-content > * { flex-shrink: 0; }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-sound-slot { width: 2.75rem; height: 2.75rem; }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
+    .clock-panel-expanded { position: fixed; inset: 0; z-index: 60; }
     .link { color: var(--brand-text); text-decoration: underline; text-underline-offset: 4px; }
     .project-cover { aspect-ratio: 16/9; width: 100%; object-fit: cover; background: var(--surface-muted); }
     .hero-panel { position: relative; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-brand-950); color: #fff; }
