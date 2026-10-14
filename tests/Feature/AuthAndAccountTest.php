@@ -28,7 +28,8 @@ class AuthAndAccountTest extends TestCase
 
     private function registration(array $overrides = []): array
     {
-        return array_replace(['name' => 'Deneme Üyesi', 'email' => 'new-member@example.test', 'password' => self::NEW_PASSWORD, 'password_confirmation' => self::NEW_PASSWORD, 'terms' => '1', 'website' => ''], $overrides);
+        $data = array_replace(['name' => 'Deneme Üyesi', 'email' => 'new-member@example.test', 'password' => self::NEW_PASSWORD, 'password_confirmation' => self::NEW_PASSWORD, 'terms' => '1', 'website' => ''], $overrides);
+        return array_replace(['email_confirmation' => $data['email']], $data);
     }
 
     private function verificationUrl(User $user, int $minutes = 60): string

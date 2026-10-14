@@ -26,7 +26,7 @@ class NotificationService
             return;
         }
 
-        if ($mailPreference && $user->hasVerifiedEmail() && $preference->getAttribute($mailPreference)) {
+        if ($mailPreference && $user->meetsEmailVerificationRequirement() && $preference->getAttribute($mailPreference)) {
             $this->mailAfterCommit($user, (new SiteMail($title, $message, $url))->locale($user->preferredLocale()));
         }
     }
@@ -56,7 +56,7 @@ class NotificationService
         }
 
         foreach ($users as $user) {
-            if ($user->hasVerifiedEmail()) {
+            if ($user->meetsEmailVerificationRequirement()) {
                 $this->mailAfterCommit($user, (new SiteMail($title, $message, $url))->locale($user->preferredLocale()));
             }
         }

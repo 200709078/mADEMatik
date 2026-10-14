@@ -36,7 +36,7 @@ Salt okunur kaynak proje: `~/Belgeler/aydin_language_academy`.
 - `config/mail.php`: SMTP/gönderici bilgileri Laravel çevre değişkenleri üzerinden yapılandırılıyor; hiçbir değer alınmadı.
 - `app/Providers/FortifyServiceProvider.php`: Laravel Fortify kayıt/şifre/profil işlemleri ve oturum açmada dakika başına 5 deneme sınırı.
 
-**Uyarlanırken dikkat:** ALA kaynaklarında `emailVerification` ve `MustVerifyEmail` etkin değil. Yeni mADEMatik gereksinimi doğrulamayı zorunlu tuttuğu için bu tercih alınmayacak. Şube, puan, ALA rol kapsamı ve Livewire zorunluluğu yeni modele taşınmayacak. Yeni model proje/genel yorumları ve yanıtları kapsayacak; her yanıt ve düzenleme zorunlu onay alacak.
+**Uyarlanırken dikkat:** ALA kaynaklarında `emailVerification` ve `MustVerifyEmail` etkin değil. mADEMatik'te doğrulama altyapısı bağımsız olarak geliştirildi; son kullanıcı talimatıyla `EMAIL_VERIFICATION_ENABLED=false` üzerinden geçici kapatıldı, kodları korundu. Kayıtta e-posta adresi iki kez yazılıp eşleşmesi denetlenir; ayar yeniden açıldığında doğrulanmamış hesaplarda doğrulama şartı geri gelir. Şube, puan, ALA rol kapsamı ve Livewire zorunluluğu yeni modele taşınmayacak. Yeni model proje/genel yorumları ve yanıtları kapsayacak; her yanıt ve düzenleme zorunlu onay alacak.
 
 ## Bağımsız ürünlerin doğrulanabilen bilgileri
 

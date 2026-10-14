@@ -22,7 +22,7 @@ class CommentController extends Controller
         }
         DB::transaction(function() use($request,$data,$notifications) {
             $user=\App\Models\User::lockForUpdate()->findOrFail($request->user()->id);
-            abort_if($user->is_blocked || !$user->hasVerifiedEmail(),403);
+            abort_if($user->is_blocked || !$user->meetsEmailVerificationRequirement(),403);
             if ($user->comments()->where('status','pending')->count()>=5) throw ValidationException::withMessages(['body'=>'En fazla beş yorumunuz aynı anda onay bekleyebilir.']);
             $body=trim($data['body']);
             if ($user->comments()->where('body',$body)->where('created_at','>',now()->subHour())->exists()) throw ValidationException::withMessages(['body'=>'Bu yorumu kısa süre önce gönderdiniz.']);

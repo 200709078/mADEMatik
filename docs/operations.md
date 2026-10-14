@@ -35,6 +35,7 @@ Yerel Adminer `http://localhost:8080/adminer.php` adresinden açılır. Sistem M
 | `APP_DEBUG` | Yerelde açık olabilir | `false` |
 | `APP_URL` | `http://127.0.0.1:8000` | Onaylanmış HTTPS ana adres |
 | `APP_LOCALE`, `APP_FALLBACK_LOCALE` | `tr` | Türkçe varsayılan; EN yayınlanmaz |
+| `EMAIL_VERIFICATION_ENABLED` | Kullanıcı talimatıyla geçici `false` | Geçici `false`; doğrulamayı yeniden açmak için `true` |
 | `DB_CONNECTION` | `mysql` | Ayrı MariaDB/MySQL |
 | `DB_HOST`, `DB_PORT` | `127.0.0.1`, `3306` | Hosting bağlantısına göre |
 | `DB_SOCKET` | Boş; TCP kullanılır | Hosting bağlantısına göre |
@@ -69,6 +70,16 @@ Mail logları mesaj ve bağlantı içerebilir; log erişimi kısıtlanır. Hesap
 
 Kurumsal iletişim adresi ve sosyal bağlantılar başlangıçta boş olabilir; yönetici gerçek bilgileri panelden girmelidir. Varsayımsal adres veya kişisel biyografi üretim bilgisi olarak kullanılmaz. Hukukî metinler taslaktır ve yayın öncesi kullanıcı tarafından gözden geçirilmelidir.
 
+## E-posta doğrulamasının geçici kapatılması
+
+Kullanıcı talimatıyla e-posta doğrulaması `.env` içindeki `EMAIL_VERIFICATION_ENABLED=false` ayarıyla geçici olarak kapatılmıştır. Aynı ayar gizli bilgi içermeyen yerel ve üretim şablonlarında da bulunur; değişken tanımlanmazsa uygulama güvenli varsayılan olarak doğrulamayı açık kabul eder. Kayıtta e-posta adresi ve tekrar alanı zorunludur; adresler eşleşmeli, geçerli biçimde ve başka hesaba ait olmamalıdır. Tekrar alanı veritabanına kaydedilmez. İki kez yazılması yazım hatasını azaltır, adresin kullanıcıya ait olduğunu kanıtlamaz.
+
+Kapalıyken doğrulama e-postası gönderilmez; kayıt ve e-posta değişikliği doğrulama ekranına yönlendirilmez. Yorum ve yönetim erişimi e-posta doğrulaması beklemez; giriş, engelli hesap denetimi, Super User yetkisi, yönetimde parola teyidi ve bütün yorumlarda zorunlu yönetici onayı sürer. Profil ve yorum alanları doğrulama uyarısı göstermez. Yönetici üye listesinde gerçekte doğrulanmış hesaplar “Doğrulandı”, doğrulanmamış hesaplar “Doğrulama kapalı” olarak gösterilir. Diğer bildirimler ve parola sıfırlama akışı korunur; üyeye isteğe bağlı e-postalar yine bildirim tercihlerine uyar.
+
+Doğrulama sınıfları, rotaları ve şablonları silinmez. Mevcut `email_verified_at` değerleri değiştirilmez; geçici modda açılan hesapların alanı `null` kalır. E-posta değişikliği önceki doğrulama zamanını temizlemeye devam eder. Yeni migration, toplu kullanıcı güncellemesi veya otomatik doğrulanmış işaretleme yapılmaz.
+
+Yeniden açmak için yalnız bu uygulamanın özel `.env` dosyasında `EMAIL_VERIFICATION_ENABLED=true` seçilir ve `php artisan config:clear` çalıştırılır. Üretim yapılandırma önbelleği kullanıyorsa ardından `php artisan config:cache` ile yenilenir; çalışan kuyruk işleyicileri de `php artisan queue:restart` veya hostingin eşdeğer yöntemiyle yeni ayarı alır. Bu komutlar burada canlı sunucuda uygulanmadı. Doğrulanmamış eski veya geçici modda kayıt olmuş kullanıcılar, doğrulama gerektiren işlemler için yeniden bağlantı isteyip e-postalarını doğrular. Gerçekte doğrulanmış kullanıcıların mevcut doğrulama durumu korunur.
+
 ## Profil fotoğrafı ve şema
 
 `users.avatar_path` nullable alanı kullanıcının isteğiyle özgün `0001_01_01_000000_create_users_table.php` migration'ına eklenmiştir; yeni bir ekleme migration'ı yoktur. Başlangıç migration'ı uygulanmış veritabanında dosyayı düzenlemek alanı kendiliğinden oluşturmaz. Mevcut proje yerel veritabanı, özel soket/veri dizini/sahiplik doğrulaması ve özel kullanıcı yedeği ardından yalnız bu nullable alan eklenerek uyumlu hale getirildi. Önceki kullanıcı alanları işlem öncesi/sonrası karşılaştırılarak korundu; sıfırlama, tekrar seed veya migration geçmişi değişimi yapılmadı.
@@ -87,7 +98,7 @@ Mevcut uygulama anonimleştirme yapmaz: kullanıcı hesabı silindiğinde ona ai
 
 Yerelde `QUEUE_CONNECTION=sync` işler hemen yürür ve ayrı worker gerekmez. `MAIL_MAILER=log` gerçek alıcıya mesaj göndermez; izinli yerel SMTP için ayrıca `MAIL_ALLOW_LOCAL_SEND=true` gerekir. Üretimde `APP_ENV=production` ve `MAIL_MAILER=smtp` seçilir. Kuyruk tablosu migration ile oluşturulur; e-posta işleri ve bildirimler için `QUEUE_CONNECTION=database` seçilirse çalışan cron/worker zorunludur. Kuyruk bağlantısı değiştirildiğinde çalışan işleyicinin ve yapılandırma önbelleğinin aynı sürümü kullandığı doğrulanır.
 
-Yönetici zil bildirimleri `MAIL_ADMIN_NOTIFICATION_ADDRESS` adresine de gönderilir. Aynı olay için birden çok aktif yönetici bulunsa da ortak adrese tek e-posta gider. Alan boşsa doğrulanmış yönetici hesaplarının kendi adresleri kullanılır. Üyelerin yorum durumları ve yanıtlar gibi özel bildirimleri ortak yönetici adresine aktarılmaz; üyeye e-posta gönderimi doğrulanmış hesabı ve ilgili tercihi üzerinden yürür. E-posta içeriği bildirim özeti ve yetki gerektiren site bağlantısıdır.
+Yönetici zil bildirimleri `MAIL_ADMIN_NOTIFICATION_ADDRESS` adresine de gönderilir. Aynı olay için birden çok aktif yönetici bulunsa da ortak adrese tek e-posta gider. Alan boşsa e-posta doğrulama şartını karşılayan yönetici hesaplarının kendi adresleri kullanılır; doğrulama kapalıyken gerçek doğrulama zamanı aranmaz. Üyelerin yorum durumları ve yanıtlar gibi özel bildirimleri ortak yönetici adresine aktarılmaz; üyeye e-posta gönderimi ilgili tercihi ve aynı doğrulama ayarı üzerinden yürür. E-posta içeriği bildirim özeti ve yetki gerektiren site bağlantısıdır.
 
 Bildirim e-postası DB işlemi tamamlandıktan sonra gönderilir. Yerel senkron SMTP hatası kaydedilmiş mesajı veya site bildirimini geri almaz; uygulama günlüğüne bağlantı bilgileri yerine yalnız hata sınıfı yazılır. `MAIL_TIMEOUT=15` bağlantının bekleme süresini sınırlar; `MAIL_REQUIRE_TLS=true` şifreli SMTP bağlantısını zorunlu tutar. SMTP sunucusunun mesajı kabul etmesi gelen kutusuna teslim garantisi sayılmaz; teslim ve spam klasörü alıcı tarafında kontrol edilir.
 

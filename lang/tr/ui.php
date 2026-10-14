@@ -26,6 +26,8 @@ return [
     'comment_placeholder' => 'Görüşünüzü veya önerinizi yazın…', 'comment_label' => 'Yorumunuz', 'comment_send' => 'İncelemeye Gönder',
     'comment_pending_note' => 'Yorumunuz ve yanıtlarınız yönetici onayından sonra görünür. Düzenlenen yorumlar yeniden incelemeye alınır.',
     'comment_login' => 'Yorum yazmak için giriş yapın ve e-posta adresinizi doğrulayın.', 'comment_verify' => 'Yorum yazabilmek için e-posta adresinizi doğrulamanız gerekiyor.',
+    'comment_login_without_verification' => 'Yorum yazmak için giriş yapın.',
+    'email_confirmation' => 'E-posta Adresi Tekrar',
     'verify_email' => 'E-Posta Doğrulamasına Git.', 'my_comments' => 'Yorumlarımın durumunu gör', 'reply' => 'Yanıtla', 'reply_label' => 'Yanıtınız',
     'report' => 'Bildir', 'report_reason' => 'Bildirim nedeni', 'report_send' => 'Bildirimi Gönder', 'report_placeholder' => 'İncelenmesini istediğiniz konuyu açıklayın.',
     'approved' => 'Onaylandı', 'comment_blocked' => 'Hesabınızın yorum paylaşımı kısıtlanmış. İletişim formundan destek isteyebilirsiniz.',

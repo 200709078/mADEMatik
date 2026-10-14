@@ -2,7 +2,7 @@
 @section('title', 'Profilim')
 @section('content')
 <section class="container-site section-space"><div class="mb-8"><p class="eyebrow">HESABIM</p><h1>Profilim</h1><p class="text-muted">Hesap bilgilerinizi, bildirimlerinizi ve yorumlarınızı yönetin.</p></div>
-@if(! $user->hasVerifiedEmail())<x-ui.alert type="warning" title="E-posta adresiniz doğrulanmadı."><a class="underline" href="{{ route('verification.notice') }}">Doğrulama bağlantısını yeniden gönderin.</a></x-ui.alert>@endif
+@if(! $user->meetsEmailVerificationRequirement())<x-ui.alert type="warning" title="E-posta adresiniz doğrulanmadı."><a class="underline" href="{{ route('verification.notice') }}">Doğrulama bağlantısını yeniden gönderin.</a></x-ui.alert>@endif
 <x-ui.card class="mt-6" x-data="profilePhoto">
     <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div class="shrink-0">

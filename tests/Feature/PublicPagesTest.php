@@ -77,7 +77,7 @@ class PublicPagesTest extends TestCase
             ->assertDontSee('<script>alert("test")</script>', false)
             ->assertSee(':aria-expanded="replyOpen"', false)
             ->assertSee('Yanıtla')->assertSee('Bildir')
-            ->assertSee('Super User onayından sonra görünür.');
+            ->assertSee('yönetici onayından sonra görünür.');
     }
 
     public function test_english_routes_and_language_switcher_are_not_published(): void

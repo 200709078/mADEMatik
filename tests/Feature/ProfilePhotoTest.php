@@ -236,7 +236,7 @@ class ProfilePhotoTest extends TestCase
         $path = 'avatars/'.Str::uuid().'.webp';
         Storage::disk('public')->put($path, 'existing unrelated avatar fixture');
         $this->post(route('register'), [
-            'name' => 'Yeni Üye', 'email' => 'avatar-registration@example.test',
+            'name' => 'Yeni Üye', 'email' => 'avatar-registration@example.test', 'email_confirmation' => 'avatar-registration@example.test',
             'password' => self::USER_PASSWORD, 'password_confirmation' => self::USER_PASSWORD,
             'terms' => '1', 'website' => '', 'avatar_path' => $path,
         ])->assertRedirect(route('verification.notice'))->assertSessionHasNoErrors();

@@ -2,7 +2,7 @@
 @auth
     @if(auth()->user()->is_blocked)
         <x-ui.alert type="warning">{{ __('ui.comment_blocked') }}</x-ui.alert>
-    @elseif(!auth()->user()->hasVerifiedEmail())
+    @elseif(!auth()->user()->meetsEmailVerificationRequirement())
         <x-ui.alert type="warning"><p>{{ __('ui.comment_verify') }}</p><a href="{{ route('verification.notice') }}" class="link mt-2 inline-block">{{ __('ui.verify_email') }}</a></x-ui.alert>
     @else
         <form action="{{ route('comments.store') }}" method="POST" class="space-y-4">
@@ -16,5 +16,5 @@
         </form>
     @endif
 @else
-    <x-ui.alert><div><p>{{ __('ui.comment_login') }}</p><div class="mt-4 flex flex-wrap gap-2"><x-ui.button :href="route('login')" size="sm">{{ __('ui.login') }}</x-ui.button><x-ui.button :href="route('register')" variant="outline" size="sm">{{ __('ui.register') }}</x-ui.button></div></div></x-ui.alert>
+    <x-ui.alert><div><p>{{ __(config('auth.email_verification_enabled', true) ? 'ui.comment_login' : 'ui.comment_login_without_verification') }}</p><div class="mt-4 flex flex-wrap gap-2"><x-ui.button :href="route('login')" size="sm">{{ __('ui.login') }}</x-ui.button><x-ui.button :href="route('register')" variant="outline" size="sm">{{ __('ui.register') }}</x-ui.button></div></div></x-ui.alert>
 @endauth

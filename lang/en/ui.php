@@ -26,6 +26,8 @@ return [
     'comment_placeholder' => 'Write your feedback or suggestion…', 'comment_label' => 'Your comment', 'comment_send' => 'Submit for Review',
     'comment_pending_note' => 'Your comments and replies appear after Super User approval. Edited comments are reviewed again.',
     'comment_login' => 'Sign in and verify your email address to leave a comment.', 'comment_verify' => 'Verify your email address to leave a comment.',
+    'comment_login_without_verification' => 'Sign in to leave a comment.',
+    'email_confirmation' => 'Repeat Email Address',
     'verify_email' => 'Go to email verification', 'my_comments' => 'View my comment statuses', 'reply' => 'Reply', 'reply_label' => 'Your reply',
     'report' => 'Report', 'report_reason' => 'Reason for reporting', 'report_send' => 'Send Report', 'report_placeholder' => 'Describe the issue you would like reviewed.',
     'approved' => 'Approved', 'comment_blocked' => 'Commenting is restricted for your account. Use the contact form to ask for help.',

@@ -15,6 +15,16 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     // Only the public identity fields may leave the model as an array or JSON.
     protected $visible = ['id','name','locale'];
     protected function casts(): array { return ['email_verified_at'=>'datetime','password'=>'hashed','is_blocked'=>'boolean','deletion_requested_at'=>'datetime']; }
+    public function meetsEmailVerificationRequirement(): bool
+    {
+        return ! config('auth.email_verification_enabled', true) || $this->hasVerifiedEmail();
+    }
+    public function sendEmailVerificationNotification(): void
+    {
+        if (config('auth.email_verification_enabled', true)) {
+            parent::sendEmailVerificationNotification();
+        }
+    }
     public function isSuperUser(): bool { return $this->role === 'super_user' && !$this->is_blocked; }
     public function comments(): HasMany { return $this->hasMany(Comment::class); }
     public function notificationPreference(): HasOne { return $this->hasOne(NotificationPreference::class)->withDefault(['comment_mail'=>false,'reply_mail'=>false,'project_mail'=>false,'site_notifications'=>true]); }

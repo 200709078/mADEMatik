@@ -26,7 +26,7 @@ class AuthController extends Controller
     public function register(): View { return view('auth.register'); }
     public function forgotPassword(): View { return view('auth.forgot-password'); }
     public function resetPassword(Request $request, string $token): View { return view('auth.reset-password', ['token' => $token, 'email' => is_string($request->input('email')) ? $request->input('email') : '']); }
-    public function verifyEmail(Request $request): View|RedirectResponse { return $request->user()->hasVerifiedEmail() ? redirect()->route('profile.edit') : view('auth.verify-email'); }
+    public function verifyEmail(Request $request): View|RedirectResponse { return $request->user()->meetsEmailVerificationRequirement() ? redirect()->route('profile.edit') : view('auth.verify-email'); }
     public function confirmPassword(): View { return view('auth.confirm-password'); }
 
     public function authenticate(Request $request): RedirectResponse
@@ -49,12 +49,15 @@ class AuthController extends Controller
 
     public function storeUser(Request $request): RedirectResponse
     {
-        if (is_string($request->input('email'))) {
-            $request->merge(['email' => Str::lower($request->input('email'))]);
+        foreach (['email', 'email_confirmation'] as $field) {
+            if (is_string($request->input($field))) {
+                $request->merge([$field => Str::lower($request->input($field))]);
+            }
         }
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'string', 'email', 'max:254', 'unique:users,email'],
+            'email_confirmation' => ['bail', 'required', 'string', 'email', 'max:254', 'same:email'],
             'password' => ['required', 'confirmed', PasswordRule::defaults()],
             'terms' => ['accepted'],
             'website' => ['nullable', 'max:0'],
@@ -64,6 +67,9 @@ class AuthController extends Controller
         event(new Registered($user));
         Auth::login($user);
         $request->session()->regenerate();
+        if (! config('auth.email_verification_enabled', true)) {
+            return redirect()->route('profile.edit')->with('status', 'Hesabınız oluşturuldu. Hoş geldiniz.');
+        }
         return redirect()->route('verification.notice')->with('status', 'Hesabınız oluşturuldu. E-posta adresinizi doğrulayarak yorum yazabilirsiniz.');
     }
 
@@ -94,13 +100,16 @@ class AuthController extends Controller
 
     public function verify(EmailVerificationRequest $request): RedirectResponse
     {
+        if (! config('auth.email_verification_enabled', true)) {
+            return redirect()->route('profile.edit');
+        }
         $request->fulfill();
         return redirect()->route('profile.edit')->with('status', 'E-posta adresiniz doğrulandı.');
     }
 
     public function resendVerification(Request $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) { return redirect()->route('profile.edit'); }
+        if ($request->user()->meetsEmailVerificationRequirement()) { return redirect()->route('profile.edit'); }
         $request->user()->sendEmailVerificationNotification();
         return back()->with('status', 'Yeni doğrulama bağlantısı e-posta adresinize gönderildi.');
     }

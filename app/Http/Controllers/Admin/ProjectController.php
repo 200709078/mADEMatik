@@ -51,7 +51,7 @@ class ProjectController extends Controller
         $project->save();
         if ($oldCover && $oldCover !== $project->cover_path && str_starts_with($oldCover, 'media/')) { Storage::disk('public')->delete($oldCover); }
         if ($request->boolean('announce') && $project->is_published) {
-            User::where('is_blocked', false)->whereNotNull('email_verified_at')->whereHas('notificationPreference', fn ($q) => $q->where('project_mail', true))->chunkById(100, function ($users) use ($project, $notifications) {
+            User::where('is_blocked', false)->when(config('auth.email_verification_enabled', true), fn ($q) => $q->whereNotNull('email_verified_at'))->whereHas('notificationPreference', fn ($q) => $q->where('project_mail', true))->chunkById(100, function ($users) use ($project, $notifications) {
                 foreach ($users as $user) { $notifications->send($user, 'project.announced', 'Yeni proje duyurusu', $project->translated('title'), route('projects.show', $project->slug), 'project_mail'); }
             });
             ActivityLog::record('project.announced', $project);

@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias(['verified' => \App\Http\Middleware\EnsureEmailVerification::class]);
         $middleware->web(append: [\App\Http\Middleware\EnsureAccountActive::class, \App\Http\Middleware\SecurityHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

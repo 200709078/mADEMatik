@@ -39,7 +39,7 @@ class ProfileController extends Controller
         }
         $user->save();
         ActivityLog::record('user.profile_updated', $user, ['email_changed' => $emailChanged]);
-        if ($emailChanged) {
+        if ($emailChanged && config('auth.email_verification_enabled', true)) {
             $user->sendEmailVerificationNotification();
             return redirect()->route('verification.notice')->with('status', 'Yeni e-posta adresinizi doğrulayın.');
         }
