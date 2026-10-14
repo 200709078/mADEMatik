@@ -40,13 +40,32 @@ Yerel Adminer `http://localhost:8080/adminer.php` adresinden açılır. Sistem M
 | `DB_SOCKET` | Boş; TCP kullanılır | Hosting bağlantısına göre |
 | `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | `madematik_v2`, ayrı proje hesabı ve gizli parola | Yeni DB ve sınırlı ayrı kullanıcı |
 | `DB_OWNERSHIP` | `madematik_v2` sahiplik işareti | Yeni DB hedefi onaylı kurulumda doğrulanır |
-| `MAIL_MAILER` | `log` | Onaylı gerçek SMTP |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME` | Gerçek SMTP kullanılmaz | Hosting/SMTP sağlayıcısının değerleri |
-| `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Yerel/test gönderici | Doğrulanmış kurumsal gönderici |
+| `MAIL_MAILER` | Varsayılan `log`; açık izinli yerel gönderimde `smtp` | `smtp` |
+| `MAIL_ALLOW_LOCAL_SEND` | Varsayılan `false`; açık izinli yerel gönderimde `true` | Gerekmez; yerel izin üretimi yönetmez |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME` | Açık izinle gizli `.env` içinde yapılandırılır | Hosting/SMTP sağlayıcısının değerleri |
+| `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Açık izinli SMTP'de doğrulanmış gönderici | Doğrulanmış kurumsal gönderici |
+| `MAIL_ADMIN_NOTIFICATION_ADDRESS` | Yönetici bildirimleri için izin verilmiş özel adres; `.env.example` boş bırakır | Aynı özel bildirim adresi veya onaylı yeni adres |
+| `MAIL_TIMEOUT`, `MAIL_REQUIRE_TLS` | `15`, `true`; SMTP bağlantısı süreli ve TLS zorunlu | `15`, `true`; SMTP sağlayıcısıyla doğrulanır |
 | `QUEUE_CONNECTION` | `sync` | `database` ve çalışan cron/worker |
 | `SESSION_SECURE_COOKIE` | HTTP geliştirmeye uygun | HTTPS için `true` |
+| `SESSION_HTTP_ONLY`, `SESSION_SAME_SITE` | `true`, `lax` | `true`, `lax` |
+| `SESSION_DOMAIN` | `null`; yalnız mevcut host | `null`; aWa ile oturum çerezi paylaşılmaz |
 
-Üretim dışı ortamlar gerçek mail gönderemez; uygulama log mailer'a yönlendirir. Mail logları mesaj ve bağlantı içerebilir; yalnız geliştirme kullanıcılarıyla çalışılır ve log erişimi kısıtlanır. Hesap doğrulama/parola sıfırlama kritik mesajları isteğe bağlı proje duyurularından ayrı tutulur.
+### Üretim ortamı şablonu
+
+[production.env.example](production.env.example), HTTPS `madematik.com` için gizli bilgi içermeyen üretim şablonudur. `APP_ENV=production`, kapalı debug, Türkçe dil, güvenli oturum çerezi ve SMTP/TLS ayarlarını bir araya getirir. DB bağlantısı ve kullanıcı bilgileri, SMTP hesabı/gönderici/bildirim adresi ve `APP_KEY` boş bırakılmıştır. Bu alanlar onaylı üretim kurulumu için hazırlanan özel `.env` dosyasında doldurulmadan şablon etkinleştirilmez; mevcut yerel `.env` dosyası değiştirilmez.
+
+Bu şablondan yerelde `.local/production.env` adlı özel hazırlık dosyası oluşturuldu; izinleri `600` ve Git kapsamı dışındadır. Mevcut uygulama anahtarı, onaylı SMTP/bildirim ayarları ve istenen DB parolası bu dosyaya aktarıldı. Hostingin DB sunucusu, portu, yeni DB adı, kullanıcı adı ve sahiplik alanı henüz boş bırakıldı. Bu bilgiler doğrulanıp doldurulmadan dosya etkinleştirilmez veya canlıya kopyalanmaz; yerel uygulama kendi `.env` dosyasını kullanır.
+
+Üretim DB alanlarına yalnız bu proje için yeni oluşturulan veritabanı ve ona sınırlı hesabın hosting değerleri girilir. `DB_OWNERSHIP`, gerçek `DB_DATABASE` değeriyle birebir aynı olmalıdır. Bu uygulamanın mevcut verileri taşınıyorsa özel mevcut `APP_KEY` korunup aktarılır; taşıma veya sürüm güncellemesinde anahtar yeniden üretilmez.
+
+Kullanıcının onayladığı SMTP hesabı ve özel yönetici bildirim adresi yalnız bu projenin gizli `.env` dosyasından üretimin özel `.env` dosyasına güvenli biçimde aktarılır. Şablona, rapora veya Git'e gerçek değer yazılmaz. `MAIL_SCHEME` ve `MAIL_PORT` sağlayıcının değerleriyle eşleştirilir: `smtp` şeması STARTTLS ve `MAIL_REQUIRE_TLS=true` ile, `smtps` şeması doğrudan TLS ile kullanılır. Üretimde `MAIL_ALLOW_LOCAL_SEND=false` kalabilir; üretim gönderimi bu yerel izin bayrağına bağlı değildir.
+
+Şablondaki `QUEUE_CONNECTION=database` yalnız aşağıda açıklanan worker/cron kurulup gerçek gönderimle doğrulandıktan sonra kullanılır. Worker henüz hazır değilse SMTP gönderimini sürdürebilmek için özel üretim `.env` dosyasında `QUEUE_CONNECTION=sync` seçilir; işlem isteği sırasında gönderim yapılacağından SMTP bekleme süresi dikkate alınır. Site bildirim e-postalarının mevcut DB işlemi tamamlandıktan sonra gönderilmesi iki kuyruk seçiminde de korunur. Hostingin PHP/uygulama yolları ve worker ile `schedule:run` cron girdileri onaylı canlı kurulumda belirlenir; şablon cron kurmaz veya ortam değişimi çalıştırmaz.
+
+Üretim dışı ortamlar varsayılan olarak log mailer'a yönlendirilir. Kullanıcının 14 Ekim 2026 tarihli açık talimatı, Learn English with ALA SMTP bilgilerinin yalnız bu projenin `.env` dosyasına aktarılmasına, yerelde gerçek gönderimin etkinleştirilmesine ve izin verilen adrese bir deneme e-postası gönderilmesine izin verir. Kaynak proje salt okunur kalır; kimlik bilgileri ve gerçek alıcı adresleri dokümantasyona veya sürüm kontrolüne yazılmaz. `APP_ENV=local` ile `MAIL_ALLOW_LOCAL_SEND=true` birlikte olmadıkça bu istisna çalışmaz; QA/testing ortamları bayrak açık olsa da gerçek gönderime kapalıdır. `.env.example` güvenli varsayılanları korur.
+
+Mail logları mesaj ve bağlantı içerebilir; log erişimi kısıtlanır. Hesap doğrulama/parola sıfırlama kritik mesajları isteğe bağlı proje duyurularından ayrı tutulur. Yönetici bildirim adresi, web sitesinde yayımlanan iletişim adresinden bağımsızdır; ziyaretçilere gösterilmez.
 
 Kurumsal iletişim adresi ve sosyal bağlantılar başlangıçta boş olabilir; yönetici gerçek bilgileri panelden girmelidir. Varsayımsal adres veya kişisel biyografi üretim bilgisi olarak kullanılmaz. Hukukî metinler taslaktır ve yayın öncesi kullanıcı tarafından gözden geçirilmelidir.
 
@@ -66,7 +85,11 @@ Mevcut uygulama anonimleştirme yapmaz: kullanıcı hesabı silindiğinde ona ai
 
 ## Mail ve kuyruk işletimi
 
-Yerelde `QUEUE_CONNECTION=sync` işler hemen yürür; `MAIL_MAILER=log` gerçek alıcıya mesaj göndermez. Üretimde kuyruk tablosu migration ile oluşturulur; e-posta işleri ve bildirimler için `QUEUE_CONNECTION=database` seçilir. Kuyruk bağlantısı değiştirildiğinde çalışan işleyicinin ve yapılandırma önbelleğinin aynı sürümü kullandığı doğrulanır.
+Yerelde `QUEUE_CONNECTION=sync` işler hemen yürür ve ayrı worker gerekmez. `MAIL_MAILER=log` gerçek alıcıya mesaj göndermez; izinli yerel SMTP için ayrıca `MAIL_ALLOW_LOCAL_SEND=true` gerekir. Üretimde `APP_ENV=production` ve `MAIL_MAILER=smtp` seçilir. Kuyruk tablosu migration ile oluşturulur; e-posta işleri ve bildirimler için `QUEUE_CONNECTION=database` seçilirse çalışan cron/worker zorunludur. Kuyruk bağlantısı değiştirildiğinde çalışan işleyicinin ve yapılandırma önbelleğinin aynı sürümü kullandığı doğrulanır.
+
+Yönetici zil bildirimleri `MAIL_ADMIN_NOTIFICATION_ADDRESS` adresine de gönderilir. Aynı olay için birden çok aktif yönetici bulunsa da ortak adrese tek e-posta gider. Alan boşsa doğrulanmış yönetici hesaplarının kendi adresleri kullanılır. Üyelerin yorum durumları ve yanıtlar gibi özel bildirimleri ortak yönetici adresine aktarılmaz; üyeye e-posta gönderimi doğrulanmış hesabı ve ilgili tercihi üzerinden yürür. E-posta içeriği bildirim özeti ve yetki gerektiren site bağlantısıdır.
+
+Bildirim e-postası DB işlemi tamamlandıktan sonra gönderilir. Yerel senkron SMTP hatası kaydedilmiş mesajı veya site bildirimini geri almaz; uygulama günlüğüne bağlantı bilgileri yerine yalnız hata sınıfı yazılır. `MAIL_TIMEOUT=15` bağlantının bekleme süresini sınırlar; `MAIL_REQUIRE_TLS=true` şifreli SMTP bağlantısını zorunlu tutar. SMTP sunucusunun mesajı kabul etmesi gelen kutusuna teslim garantisi sayılmaz; teslim ve spam klasörü alıcı tarafında kontrol edilir.
 
 Paylaşımlı cPanel sunucusunda sürekli worker desteklenmiyorsa her dakika sınırlı süreli bir işleyici çalıştırılabilir. Aşağıdaki yol ve PHP sürümü örnektir; gerçek hesap yolları onaylı hosting incelemesinde belirlenir. Kilit dosyası özel uygulama storage içinde kalır.
 
@@ -84,7 +107,7 @@ Sitemap üretimi artık Laravel zamanlayıcısında yalnız üretimde saatte bir
 
 İlk dosya `php artisan madematik:generate-sitemap` ile hazırlanır. Çıktı özel `storage/app/private/seo/sitemap.xml` altında kalır; `/sitemap.xml` yalnız güncel açık URL'leri sunar. Görev, dosya izinleri ve veri kapsamı [sitemap belgesinde](sitemap.md) açıklanır. Bu örnek sunucuya uygulanmadı; PHP ve hesap yolları canlı onay sonrası doğrulanır.
 
-SMTP değerleri, gerçek alıcılar ve DNS/SPF/DKIM ayarları ancak canlı yayın hazırlığına yönelik açık onay kapsamında uygulanır. Kapsamlı testler sahte mail/log veya kullanıcının onayladığı test SMTP üzerinde yürür.
+Bu yerel SMTP izni canlı sunucuda işlem veya dağıtım izni değildir. Üretim `.env`, worker/cron ve DNS/SPF/DKIM ayarları ayrı canlı hazırlık onayı sonrasında doğrulanıp uygulanır. Kapsamlı otomatik testler sahte mail/log kullanır; gerçek deneme e-postası yalnız kullanıcının ayrıca izin verdiği adrese gönderilir.
 
 ## cPanel ve dosya yerleşimi
 

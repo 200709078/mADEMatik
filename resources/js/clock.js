@@ -22,6 +22,7 @@ export function createClockTool(labels = {}) {
     soundOn: true,
     audioCtx: null,
     zoomLevels: { clock: 100, timer: 100 },
+    zoomAtLimit: false,
     viewNotice: '',
     presetMinutes: [5, 10, 15, 20, 40, 60],
     init() {
@@ -61,7 +62,7 @@ export function createClockTool(labels = {}) {
         this.tick();
         this.interval = window.setInterval(() => this.tick(), 200);
         this.onVisibility = () => this.tick();
-        this.onFullscreen = () => { this.fullScreen = !!document.fullscreenElement; };
+        this.onFullscreen = () => { this.fullScreen = !!document.fullscreenElement; this.scheduleZoomMeasurement(); };
         this.onExpandedKeydown = event => {
             if (!this.expanded) return;
             if (event.key === 'Escape') { this.expanded = false; return; }
@@ -74,12 +75,26 @@ export function createClockTool(labels = {}) {
         document.addEventListener('visibilitychange', this.onVisibility);
         document.addEventListener('fullscreenchange', this.onFullscreen);
         document.addEventListener('keydown', this.onExpandedKeydown);
+        this.onResize = () => this.scheduleZoomMeasurement();
+        window.addEventListener?.('resize', this.onResize);
+        if (typeof this.$watch === 'function') this.$watch('expanded', this.onResize);
+        this.$nextTick?.(() => {
+            if (typeof ResizeObserver === 'function' && this.$refs?.panel) {
+                this.zoomResizeObserver = new ResizeObserver(this.onResize);
+                for (const element of [this.$refs.panel, this.$refs.clockFace, this.$refs.timerFace]) {
+                    if (element) this.zoomResizeObserver.observe(element);
+                }
+            }
+            this.updateZoomLimit();
+        });
     },
     destroy() {
         window.clearInterval(this.interval);
         document.removeEventListener('visibilitychange', this.onVisibility);
         document.removeEventListener('fullscreenchange', this.onFullscreen);
         document.removeEventListener('keydown', this.onExpandedKeydown);
+        window.removeEventListener?.('resize', this.onResize);
+        this.zoomResizeObserver?.disconnect();
         document.body.style.overflow = '';
     },
     tick() {
@@ -97,14 +112,28 @@ export function createClockTool(labels = {}) {
     persist() {
         try { localStorage.setItem(this.storageKey, JSON.stringify({ total: this.total, remaining: this.remaining, startedAt: this.startedAt, endsAt: this.endsAt, running: this.running, completed: this.completed, mode: this.mode })); } catch (_) { this.notice = this.labels.storageUnavailable; }
     },
-    setMode(mode) { this.mode = mode === 'timer' ? 'timer' : 'clock'; this.persist(); },
+    setMode(mode) { this.mode = mode === 'timer' ? 'timer' : 'clock'; this.zoomAtLimit = false; this.persist(); this.scheduleZoomMeasurement(); },
     get zoomPercent() { return this.zoomLevels[this.mode]; },
     get zoomScale() { return this.zoomPercent / 100; },
+    get canZoomIn() { return this.zoomPercent < 400 && !this.zoomAtLimit; },
+    scheduleZoomMeasurement() { this.$nextTick?.(() => this.updateZoomLimit()); },
+    updateZoomLimit() {
+        const face = this.mode === 'timer' ? this.$refs?.timerFace : this.$refs?.clockFace;
+        const limit = this.$refs?.zoomLimit;
+        if (!face?.isConnected || !limit?.isConnected || typeof window.getComputedStyle !== 'function') return;
+        const currentSize = Number.parseFloat(window.getComputedStyle(face).fontSize);
+        const maximumSize = Number.parseFloat(window.getComputedStyle(limit).fontSize);
+        // The hidden reference uses the same CSS at maximum zoom, including its width cap.
+        this.zoomAtLimit = Number.isFinite(currentSize) && Number.isFinite(maximumSize)
+            && maximumSize > 0 && currentSize >= maximumSize - 0.1;
+    },
     changeZoom(change) {
         if (![10, -10, 0].includes(change)) return;
+        if (change === 10 && !this.canZoomIn) return;
         this.zoomLevels[this.mode] = change === 0 ? 100 : Math.max(60, Math.min(400, this.zoomPercent + change));
         try { localStorage.setItem(this.viewStorageKey, JSON.stringify(this.zoomLevels)); this.viewNotice = ''; }
         catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
+        this.scheduleZoomMeasurement();
     },
     selectPreset(minutes) {
         if (this.running || (this.startedAt !== null && !this.completed) || !this.presetMinutes.includes(minutes)) return;

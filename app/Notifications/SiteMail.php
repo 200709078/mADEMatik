@@ -12,6 +12,6 @@ class SiteMail extends Notification implements ShouldQueue
     public function via(object $notifiable): array { return ['mail']; }
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject($this->title)->greeting(__('mail.greeting',['name'=>$notifiable->name]))->line($this->message)->action(__('mail.site_action'), $this->url)->salutation('mADEMatik Solutions');
+        return (new MailMessage)->subject($this->title)->greeting(__('mail.greeting',['name'=>$notifiable->name ?? __('mail.admin_name')]))->line($this->message)->action(__('mail.site_action'), $this->url)->salutation('mADEMatik Solutions');
     }
 }

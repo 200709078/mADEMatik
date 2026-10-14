@@ -28,7 +28,7 @@
                     <div class="flex w-fit items-center gap-1 rounded-xl surface-muted p-1" role="group" aria-label="{{ __('clock.zoom') }}">
                         <x-ui.button variant="ghost" size="sm" class="button-icon" @click="changeZoom(-10)" ::disabled="zoomPercent<=60" :aria-label="__('clock.zoom_out')" title="{{ __('clock.zoom_out_title') }}"><x-icon name="zoom-out" class="h-4 w-4" /></x-ui.button>
                         <x-ui.button variant="ghost" size="sm" class="min-w-16 font-mono tabular-nums" @click="changeZoom(0)" :aria-label="__('clock.zoom_reset')" title="{{ __('clock.zoom_reset_title') }}"><span x-text="zoomPercent+'%'" aria-live="polite">100%</span></x-ui.button>
-                        <x-ui.button variant="ghost" size="sm" class="button-icon" @click="changeZoom(10)" ::disabled="zoomPercent>=400" :aria-label="__('clock.zoom_in')" title="{{ __('clock.zoom_in_title') }}"><x-icon name="zoom-in" class="h-4 w-4" /></x-ui.button>
+                        <x-ui.button data-testid="clock-zoom-in" variant="ghost" size="sm" class="button-icon" @click="changeZoom(10)" ::disabled="!canZoomIn" :aria-label="__('clock.zoom_in')" title="{{ __('clock.zoom_in_title') }}"><x-icon name="zoom-in" class="h-4 w-4" /></x-ui.button>
                     </div>
                     <x-ui.button variant="ghost" size="sm" class="button-icon" @click="toggleFullscreen()" ::aria-label="(fullScreen||expanded) ? labels.shrink : labels.enlarge" title="{{ __('ui.fullscreen') }}">
                         <span x-show="!(fullScreen||expanded)"><x-icon name="maximize" class="h-4 w-4" /></span>
@@ -39,16 +39,16 @@
             <div data-testid="clock-content" class="clock-panel-content">
             <div id="clock-display" role="tabpanel" aria-labelledby="clock-tab" x-show="mode==='clock'" class="surface-muted mb-6 rounded-xl py-10 text-center">
                 <h2 class="text-muted mb-6 text-lg font-medium">{{ __('clock.now') }}</h2>
-                <time class="clock-face block" x-text="clockText" :datetime="new Date(now).toISOString()"></time>
+                <time x-ref="clockFace" class="clock-face block" x-text="clockText" :datetime="new Date(now).toISOString()"></time>
                 <div class="mt-6 flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1 text-base sm:text-lg">
                     <p x-text="dateText"></p>
                     <p class="text-muted" x-text="@js(__('clock.week', ['week'=>':week'])).replace(':week',weekNumber)"></p>
                 </div>
                 <p class="eyebrow mt-6">{{ __('clock.local_time_label') }}</p>
             </div>
-            <div id="timer-display" role="tabpanel" aria-labelledby="timer-tab" x-cloak x-show="mode==='timer'" class="py-6 text-center">
+            <div id="timer-display" role="tabpanel" aria-labelledby="timer-tab" x-cloak x-show="mode==='timer'" class="surface-muted rounded-xl py-6 text-center">
                 <h2 class="text-muted mb-6 text-lg font-medium">{{ __('clock.timer_heading') }}</h2>
-                <output class="clock-face block" role="timer" aria-live="off" x-text="countdownText"></output>
+                <output x-ref="timerFace" class="clock-face block" role="timer" aria-live="off" x-text="countdownText"></output>
                 <p class="mt-4 min-h-7 text-sm text-muted" aria-live="polite">
                     <span x-show="completed">{{ __('ui.timer_complete') }}</span><span x-show="running">{{ __('ui.timer_running') }}</span><span x-show="!running&&!completed&&startedAt!==null">{{ __('ui.timer_paused') }}</span><span x-show="!running&&!completed&&startedAt===null">{{ __('ui.timer_ready') }}</span>
                 </p>
@@ -83,6 +83,7 @@
             <p x-cloak x-show="viewNotice" x-text="viewNotice" role="status" class="mt-4 text-center text-sm text-[var(--warning)]"></p>
             <p class="text-muted border-t border-[var(--border)] pt-6 text-center text-sm">{{ __('clock.tagline') }}</p>
             </div>
+            <span x-ref="zoomLimit" aria-hidden="true" class="clock-face invisible pointer-events-none absolute" style="--clock-zoom:4"></span>
         </div>
         <noscript><p class="mt-5 text-center text-sm text-muted">{{ __('clock.noscript') }}</p></noscript>
         @include('pages.clock.world-times')

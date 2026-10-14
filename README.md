@@ -72,7 +72,11 @@ Geçici işlem mesajları frontend ve admin'de aynı toast bileşenini kullanır
 
 Onaylı raster marka paketi `public/assets/brand/` altında kullanılır. MS sembolü yeniden çizilmez. Kaynak dosya bilgileri ve SHA256 doğrulaması [referans notlarında](docs/reference-notes.md) bulunur.
 
-Yerelde mail `log`, kuyruk `sync` kullanır. Üretim dışı ortamlarda gerçek SMTP gönderimi uygulama tarafından engellenir. Üretim SMTP, kuyruk/cron ve barındırma kurulumu [operasyon belgesinde](docs/operations.md) açıklanır.
+Mail varsayılan olarak `log` kullanır. Kullanıcının 14 Ekim 2026 tarihli açık izniyle bu projenin yerel SMTP gönderimi `APP_ENV=local`, `MAIL_ALLOW_LOCAL_SEND=true` ve `MAIL_MAILER=smtp` ile etkinleştirilebilir; QA ve test ortamları gerçek gönderime kapalıdır. Yerelde kuyruk `sync` kullanır. SMTP bilgileri yalnız bu projenin gizli `.env` dosyasında tutulur; Learn English with ALA kaynak projesi değiştirilmez. Üretim SMTP, kuyruk/cron ve barındırma kurulumu [operasyon belgesinde](docs/operations.md) açıklanır.
+
+Gizli bilgi içermeyen [üretim ortamı şablonu](docs/production.env.example), HTTPS adresi, güvenli oturum çerezi, SMTP/TLS ve üretim kuyruk ayarlarını hazırlar. Boş APP_KEY/DB/SMTP alanları özel üretim `.env` dosyasında doldurulmadan etkinleştirilmez; mevcut yerel `.env` korunur. `database` kuyruğu çalışan worker/cron gerektirir; worker hazır değilse `sync` ile gönderim yapılabilir. Şablonun kullanımı ve mevcut uygulama anahtarının korunması [operasyon belgesinde](docs/operations.md#üretim-ortamı-şablonu) açıklanır.
+
+`MAIL_ADMIN_NOTIFICATION_ADDRESS`, yönetici zil bildirimlerinin e-posta olarak da iletileceği özel adresi belirler. Bir olay birden çok yöneticiye bildirildiğinde bu adrese tek e-posta gönderilir; üyelerin özel bildirimleri bu adrese kopyalanmaz. E-posta gönderimi DB işlemi tamamlandıktan sonra yapılır; SMTP hatası kaydedilmiş iletişim mesajını veya site bildirimini geri almaz.
 
 `/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` mevcut fiziksel yayın dizinleri korunur. aWa bağımsız olarak `https://awa.madematik.com` üzerinde çalışır; bu uygulama yalnızca bağlantı verir. Ortak oturum veya çapraz veritabanı bağlantısı kurulmaz.
 

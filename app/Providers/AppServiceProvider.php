@@ -25,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
         if (app()->runningUnitTests()) app(\Illuminate\Contracts\Console\Kernel::class)->rerouteSymfonyCommandEvents();
         \Illuminate\Support\Facades\Gate::define('admin', fn (\App\Models\User $user) => $user->isSuperUser());
         \Illuminate\Validation\Rules\Password::defaults(fn () => \Illuminate\Validation\Rules\Password::min(6)->mixedCase()->numbers()->symbols());
-        if (! app()->isProduction()) config(['mail.default' => 'log']);
+        $localMailAllowed = $this->app->environment('local') && config('mail.allow_local_send');
+        if (! $this->app->isProduction() && ! $localMailAllowed) config(['mail.default' => 'log']);
         \Illuminate\Support\Facades\View::composer(['layouts.app','layouts.admin'], function ($view) {
             try { $settings=\App\Services\Settings::allLocalized(); }
             catch (\Illuminate\Database\QueryException $e) { $settings=array_map(fn($v)=>$v['tr']??[], config('content')); }
