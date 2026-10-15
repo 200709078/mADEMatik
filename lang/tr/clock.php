@@ -4,7 +4,7 @@ return [
     'tagline' => 'Sınıfınız için, zamanı sade tutun.',
     'now' => 'Şimdi',
     'local_time_label' => 'Cihazınızın Yerel Saati',
-    'timer_heading' => 'Bir işe zaman ayırın',
+    'timer_heading' => 'Bir işe zaman ayırın.',
     'week' => ':week. Hafta',
     'zoom' => 'Görünüm boyutu',
     'zoom_in' => 'Zoom +',

@@ -34,7 +34,7 @@ return [
     'contact_form' => 'Mesaj gönderin', 'contact_name' => 'Adınız', 'email' => 'E-Posta Adresiniz', 'subject' => 'Konu', 'message' => 'Mesajınız',
     'contact_send' => 'Mesajı Gönder', 'contact_help' => 'Projeniz, bir iş birliği fikri veya uygulamalarla ilgili geri bildiriminiz için yazabilirsiniz.',
     'contact_privacy' => 'Formda paylaştığınız bilgiler yalnızca mesajınızın değerlendirilmesi ve yanıtlanması için kullanılır.',
-    'contact_consent' => 'Gizlilik ve KVKK aydınlatma taslağını okudum.', 'other_connections' => 'Diğer Bağlantılar', 'email_not_set' => 'İletişim e-posta adresi henüz yayınlanmadı. Formu kullanabilirsiniz.',
+    'contact_consent' => 'Gizlilik ve KVKK aydınlatma taslağını okudum.', 'other_connections' => 'Sosyal Medya', 'other_links' => 'Diğer Bağlantılar', 'email_not_set' => 'İletişim e-posta adresi henüz yayınlanmadı. Formu kullanabilirsiniz.',
     'clock_intro' => 'Yerel saatinizi görün veya işinize, dersinize ve molanıza bir süre ayırın.', 'clock_tab' => 'Saat', 'timer_tab' => 'Sayaç', 'home_control' => 'ANA SAYFA',
     'local_time' => 'Yerel saat', 'countdown' => 'Geri sayım', 'hours' => 'Saat', 'minutes' => 'Dakika', 'seconds' => 'Saniye',
     'start' => 'Başlat', 'resume' => 'Devam Et', 'pause' => 'Duraklat', 'reset' => 'Sıfırla', 'enlarge' => 'Büyüt', 'shrink' => 'Küçült', 'fullscreen' => 'Tam Ekran',

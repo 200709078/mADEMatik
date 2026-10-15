@@ -142,15 +142,15 @@
 
 <x-ui.card>
 <h2 class="text-xl font-semibold mb-5">Sosyal bağlantılar</h2>
-<div class="grid gap-5 lg:grid-cols-2">
-@foreach(range(0,5) as $index)<div class="grid grid-cols-2 gap-3">
-
-<x-ui.input :name="'social['.$index.'][label]'" :label="'Bağlantı '.($index+1).' adı'" :value="old('social.'.$index.'.label',$settings['social'][$index]['label'] ?? '')" :error="$errors->first('social.'.$index.'.label')" />
-
-<x-ui.input :name="'social['.$index.'][url]'" label="URL" :value="old('social.'.$index.'.url',$settings['social'][$index]['url'] ?? '')" :error="$errors->first('social.'.$index.'.url')" />
+<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+@php($socialLabels = ['LinkedIn', 'GitHub', 'Instagram', 'YouTube', 'Facebook', 'WhatsApp'])
+@php($socialByLabel = collect($settings['social'] ?? [])->keyBy('label'))
+@foreach(range(0,5) as $index)<div>
+<input type="hidden" name="social[{{ $index }}][label]" value="{{ $socialLabels[$index] ?? 'Bağlantı '.($index+1) }}">
+<x-ui.input :name="'social['.$index.'][url]'" :label="$socialLabels[$index] ?? 'Bağlantı '.($index+1)" placeholder="https://" :value="old('social.'.$index.'.url', $socialByLabel->get($socialLabels[$index] ?? '')['url'] ?? '')" :error="$errors->first('social.'.$index.'.url')" />
 </div>
 @endforeach</div>
-<p class="field-help mt-3">Adı ve URL alanları dolu bağlantılar gösterilir. http veya https kullanın.</p>
+<p class="field-help mt-3">URL yazılan bağlantılar sitede gösterilir. http veya https kullanın.</p>
 
 </x-ui.card>
 

@@ -34,7 +34,7 @@ return [
     'contact_form' => 'Send a message', 'contact_name' => 'Your name', 'email' => 'Your email address', 'subject' => 'Subject', 'message' => 'Your message',
     'contact_send' => 'Send Message', 'contact_help' => 'Write about your project, a collaboration idea, or feedback on the applications.',
     'contact_privacy' => 'The details you share are used only to review and respond to your message.',
-    'contact_consent' => 'I have read the draft privacy notice.', 'other_connections' => 'Other links', 'email_not_set' => 'The contact email address is not published yet. Please use the form.',
+    'contact_consent' => 'I have read the draft privacy notice.', 'other_connections' => 'Social Media', 'other_links' => 'Other Links', 'email_not_set' => 'The contact email address is not published yet. Please use the form.',
     'clock_intro' => 'View your local time or set aside time for work, a lesson or a break.', 'clock_tab' => 'CLOCK', 'timer_tab' => 'TIMER', 'home_control' => 'HOME',
     'local_time' => 'Local time', 'countdown' => 'Countdown', 'hours' => 'Hours', 'minutes' => 'Minutes', 'seconds' => 'Seconds',
     'start' => 'Start', 'resume' => 'Resume', 'pause' => 'Pause', 'reset' => 'Reset', 'enlarge' => 'Enlarge', 'shrink' => 'Reduce', 'fullscreen' => 'Fullscreen',
