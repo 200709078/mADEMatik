@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Seçici canlı sync: staging klondan canlı dizine yalnız değişen dosyaları aktarır.
-# Kullanım: ./scripts/deploy-sync.sh <kaynak-klon> <canli-dizin>
+# Kullanım: ./scripts/deploy-sync.sh <kaynak-klon> <canli-dizin> [taban-commit]
 # Örnek:   ./scripts/deploy-sync.sh ~/repositories/mADEMatik ~/public_html
+# İlk çalıştırmada canlı gerideyse taban verilir:
+#          ./scripts/deploy-sync.sh ~/repositories/mADEMatik ~/public_html 6296151
 #
 # Kurallar:
 # - Migration (database/migrations) veya composer.lock değişmişse DURUR; bunlar ayrıca onay ister.
@@ -14,6 +16,7 @@ set -euo pipefail
 
 SRC="${1:-}"
 DST="${2:-}"
+BASE_ARG="${3:-}"
 
 fail() { printf '%s\n' "Hata: $*" >&2; exit 1; }
 
@@ -27,15 +30,21 @@ esac
 cd -- "$SRC"
 [[ "$(git branch --show-current)" == "main" ]] || fail 'Kaynak main dalında değil.'
 git fetch origin
-BEFORE="$(git rev-parse HEAD)"
+PRE_MERGE="$(git rev-parse HEAD)"
 AFTER="$(git rev-parse origin/main)"
-if [[ "$BEFORE" == "$AFTER" ]]; then
-    printf '%s\n' "Değişiklik yok ($BEFORE)."
+if [[ "$PRE_MERGE" == "$AFTER" && -z "$BASE_ARG" ]]; then
+    printf '%s\n' "Değişiklik yok ($AFTER)."
     exit 0
 fi
 
-CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+CHANGED="$(git diff --name-only "$PRE_MERGE" "$AFTER")"
 git merge --ff-only origin/main
+BEFORE="$PRE_MERGE"
+if [[ -n "$BASE_ARG" ]]; then
+    git cat-file -e "$BASE_ARG^{commit}" 2>/dev/null || fail "Taban commit bulunamadı: $BASE_ARG"
+    BEFORE="$BASE_ARG"
+    CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+fi
 
 NEEDS_APPROVAL="$(grep -E '^(database/migrations/|composer\.lock)' <<<"$CHANGED" || true)"
 if [[ -n "$NEEDS_APPROVAL" ]]; then
