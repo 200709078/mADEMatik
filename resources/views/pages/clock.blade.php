@@ -84,6 +84,11 @@
             <p class="text-muted border-t border-[var(--border)] pt-6 text-center text-sm">{{ __('clock.tagline') }}</p>
             </div>
             <span x-ref="zoomLimit" aria-hidden="true" class="clock-face invisible pointer-events-none absolute" style="--clock-zoom:4"></span>
+            <div x-cloak x-show="fullScreen||expanded" class="absolute bottom-4 left-4 z-10 sm:bottom-6 sm:left-6">
+                <a href="{{ route('home') }}" aria-label="{{ __('ui.home_control') }}" title="{{ __('ui.home_control') }}" class="block rounded-lg opacity-60 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+                    <x-brand-logo loading="lazy" class="h-10 w-auto max-w-64 shrink-0 object-contain" />
+                </a>
+            </div>
         </div>
         <noscript><p class="mt-5 text-center text-sm text-muted">{{ __('clock.noscript') }}</p></noscript>
         @include('pages.clock.world-times')
