@@ -11,7 +11,9 @@
 #   public/{drAW,GeoMatik2D,GeoMatik3D,avCELL,awa,storage}.
 # - Silinen dosyalar canlıdan silinmez, listelenir.
 # - public/build/manifest.json en son kopyalanır.
-# - Sonunda hedefte `optimize:clear` çalışır (migrate/seed içermez).
+# - Sonunda hedefte önbellek temizliği çalışır (migrate/seed içermez). Bu hostingde
+#   `optimize:clear` takıldığı için her yayında `view:clear`, config/routes/.env.example
+#   değişmişse ek olarak `config:clear` ve `route:clear` uygulanır.
 set -euo pipefail
 
 SRC="${1:-}"
@@ -74,6 +76,7 @@ LAST="$(grep 'public/build/manifest.json' <<<"$FILES" || true)"
 {
     [[ -n "$REST" ]] && printf '%s\n' "$REST"
     [[ -n "$LAST" ]] && printf '%s\n' "$LAST"
+    true
 } | while IFS= read -r f; do
     [[ -n "$f" ]] || continue
     if [[ ! -f "$SRC/$f" ]]; then
@@ -85,5 +88,14 @@ LAST="$(grep 'public/build/manifest.json' <<<"$FILES" || true)"
     printf '%s\n' "Kopyalandı: $f"
 done
 
-php -- "$DST/artisan" optimize:clear
+ARTISAN_TIMEOUT=""
+if command -v timeout >/dev/null 2>&1; then ARTISAN_TIMEOUT="timeout 100"; fi
+# shellcheck disable=SC2086
+$ARTISAN_TIMEOUT php -- "$DST/artisan" view:clear
+if grep -qE '^(\.env\.example$|config/|routes/)' <<<"$CHANGED"; then
+    # shellcheck disable=SC2086
+    $ARTISAN_TIMEOUT php -- "$DST/artisan" config:clear
+    # shellcheck disable=SC2086
+    $ARTISAN_TIMEOUT php -- "$DST/artisan" route:clear
+fi
 printf '%s\n' "Tamam: $BEFORE -> $AFTER"
