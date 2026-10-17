@@ -72,6 +72,8 @@ Geçici işlem mesajları frontend ve admin'de aynı toast bileşenini kullanır
 
 ## Görseller, mail ve bağımsız uygulamalar
 
+Projelerin detay sayfalarında platformlara göre indirilebilir sürümler ve mağaza/deneme bağlantıları yönetilebilir. Yönetim panelinde proje düzenleme sayfasının “İndirilebilir Sürümler” bölümünden eklenir. drAW 0.0.3 Linux AppImage/DEB paketleri için doğrulanmış bilgiler hazırdır; indirme adresi olmadığından taslak kalır. Yeni tablo, güvenli aktarım komutu ve yayın adımları [indirme belgesindedir](docs/project-downloads.md).
+
 Onaylı raster marka paketi `public/assets/brand/` altında kullanılır. MS sembolü yeniden çizilmez. Kaynak dosya bilgileri ve SHA256 doğrulaması [referans notlarında](docs/reference-notes.md) bulunur.
 
 Mail varsayılan olarak `log` kullanır. Kullanıcının 14 Ekim 2026 tarihli açık izniyle bu projenin yerel SMTP gönderimi `APP_ENV=local`, `MAIL_ALLOW_LOCAL_SEND=true` ve `MAIL_MAILER=smtp` ile etkinleştirilebilir; QA ve test ortamları gerçek gönderime kapalıdır. Yerelde kuyruk `sync` kullanır. SMTP bilgileri yalnız bu projenin gizli `.env` dosyasında tutulur; Learn English with ALA kaynak projesi değiştirilmez. Üretim SMTP, kuyruk/cron ve barındırma kurulumu [operasyon belgesinde](docs/operations.md) açıklanır.

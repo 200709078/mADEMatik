@@ -1,5 +1,6 @@
 <?php
 return [
+    'download.created'=>'İndirme kaydı oluşturuldu', 'download.updated'=>'İndirme kaydı güncellendi', 'download.deleted'=>'İndirme kaydı silindi',
     'account.deletion_requested'=>'Hesap silme talebi alındı',
     'category.created'=>'Kategori oluşturuldu', 'category.updated'=>'Kategori güncellendi', 'category.deleted'=>'Kategori silindi',
     'comment.submitted'=>'Yorum onaya gönderildi', 'comment.resubmitted'=>'Düzenlenen yorum yeniden onaya gönderildi',

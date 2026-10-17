@@ -22,7 +22,7 @@ class ProjectController extends Controller
         return view('admin.projects.index', ['projects' => $query->paginate(20)->withQueryString()]);
     }
     public function create() { return view('admin.projects.form', ['project' => new Project(['status' => 'developing', 'sort_order' => 0]), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }
-    public function edit(Project $project) { return view('admin.projects.form', ['project' => $project->load('media'), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }
+    public function edit(Project $project) { return view('admin.projects.form', ['project' => $project->load(['media', 'downloads']), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }
     public function store(ProjectRequest $request, MediaService $media, NotificationService $notifications)
     {
         $project = new Project();

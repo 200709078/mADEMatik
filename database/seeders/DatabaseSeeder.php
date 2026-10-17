@@ -30,5 +30,6 @@ class DatabaseSeeder extends Seeder
             Project::firstOrCreate(['slug'=>$slug],['title'=>['tr'=>$title],'project_category_id'=>$category,'summary'=>['tr'=>$summary],'description'=>['tr'=>$description],'features'=>['tr'=>$features],'technologies'=>$technologies,'status'=>'live','is_published'=>true,'is_featured'=>true,'sort_order'=>array_search($title,['drAW','GeoMatik2D','GeoMatik3D','avCELL','aWa'],true)+1,'external_url'=>$url]);
         }
         $this->call(ClockProjectSeeder::class);
+        $this->call(DrawDownloadsSeeder::class);
     }
 }

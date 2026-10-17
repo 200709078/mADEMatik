@@ -10,6 +10,7 @@ class Project extends Model
     protected function casts(): array { return ['title'=>'array','summary'=>'array','description'=>'array','features'=>'array','technologies'=>'array','seo_title'=>'array','meta_description'=>'array','is_published'=>'boolean','is_featured'=>'boolean']; }
     public function category(): BelongsTo { return $this->belongsTo(ProjectCategory::class,'project_category_id'); }
     public function media(): HasMany { return $this->hasMany(ProjectMedia::class)->orderBy('sort_order'); }
+    public function downloads(): HasMany { return $this->hasMany(ProjectDownload::class)->orderBy('sort_order')->orderByDesc('released_at')->orderByDesc('id'); }
     public function comments(): HasMany { return $this->hasMany(Comment::class); }
     public function scopePublished(Builder $query): void { $query->where('is_published',true); }
     public function getCoverUrlAttribute(): string { return $this->cover_path ? asset('storage/'.$this->cover_path) : asset('assets/brand/placeholders/proje-varsayilan-1200x675.webp'); }

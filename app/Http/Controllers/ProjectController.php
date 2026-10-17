@@ -17,7 +17,7 @@ class ProjectController extends Controller
     }
     public function show(string $slug)
     {
-        $project=Project::published()->with(['category','media'])->where('slug',$slug)->firstOrFail();
+        $project=Project::published()->with(['category','media','downloads'=>fn($q)=>$q->published()])->where('slug',$slug)->firstOrFail();
         $comments=$project->comments()->publiclyVisible()->whereNull('parent_id')->with(['user','replies'=>fn($q)=>$q->publiclyVisible()->with('user')])->latest('approved_at')->paginate(10);
         return view('projects.show',['siteSettings'=>Settings::allLocalized(),'project'=>$project,'comments'=>$comments,'seo'=>['title'=>($project->translated('seo_title')?:$project->translated('title')).' | mADEMatik Solutions','description'=>$project->translated('meta_description')?:$project->translated('summary'),'image'=>$project->cover_url,'canonical'=>route('projects.show',$project->slug)]]);
     }
