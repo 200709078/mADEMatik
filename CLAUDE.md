@@ -6,7 +6,7 @@ Kullanıcıyla Türkçe konuş. Ziyaretçiye görünen metinler Türkçe; kod, t
 
 ## Kesin kurallar
 
-- **Commit/push yalnız kullanıcı açıkça isterse.** Canlı sunucuya (cPanel) dağıtım, DNS, SSL, gerçek e-posta alıcıları ve canlı veriler için her seferinde ayrı açık onay al.
+- **Commit + push serbest** (biten, doğrulanmış iş; `main`'e normal push; bkz. `~/Belgeler/CLAUDE.md`). Canlı sunucuya (cPanel) dağıtım, DNS, SSL, gerçek e-posta alıcıları ve canlı veriler için her seferinde ayrı açık onay al.
 - **Diğer projeler salt okunur:** `~/Belgeler` altındaki `aWa`, `drAW`, `drAW2D`, `drAW3D`, `awCELL`, `Learn English with ALA` vb. okunabilir; değiştirilmez, içlerinde bağımlılık kurma/migration/test çalıştırılmaz.
 - **aWa** (`https://awa.madematik.com`) bağımsız uygulama, ayrı DB ve ayrı yönetim paneli. Ona DB bağlantısı, ortak SSO veya kod müdahalesi yok; ana site yalnız tanıtır ve bağlantı verir. Yazımı `aWa` (asla `AWay`).
 - **Fiziksel public uygulama dizinleri korunur:** `/drAW`, `/drAW2D`, `/drAW3D`, `/awCELL` (`public/` altında; her biri kendi deposundan `npm run deploy` ile yüklenir) ve `awa`. Laravel `.htaccess` `-d`/`-f` kuralı bunları ezmemeli; canlıda bu dizinlere dokunan `rm`, `rsync --delete` vb. kullanılmaz.
