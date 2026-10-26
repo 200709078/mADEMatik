@@ -76,10 +76,15 @@ fi
 [[ -z "$STOPPERS" ]] || fail 'Yayın yapılmadı.'
 
 git push -q origin main
+# cPanel'in güncellemesi her zaman çekmiyor (2026-10-26: "tamam" deyip eski commit'te kaldı); çekmezse
+# sorun değil, .cpanel.yml'deki deploy-sync.sh GitHub'dan kendisi çeker. Sonuç sondaki kayıtla doğrulanır.
 res="$(api VersionControl/update "repository_root=$CPANEL_REPO" "branch=main")"
-ok "$res" "cPanel depoyu GitHub'dan çekemedi"
+ok "$res" "cPanel depoyu güncelleyemedi"
 pulled="$(jq -r '.data.last_update.identifier // empty' <<<"$res")"
-[[ -z "$pulled" || "$pulled" == "$HEAD_SHA" ]] || fail "cPanel deposu ${pulled:0:7}'da, beklenen ${HEAD_SHA:0:7}."
+[[ -z "$pulled" || "$pulled" == "$HEAD_SHA" ]] ||
+    printf '! cPanel deposu %s’da kaldı; deploy-sync.sh kendisi çekecek.\n' "${pulled:0:7}"
+[[ "$(jq -r '.data.deployable // 1' <<<"$res")" != 0 ]] ||
+    fail "cPanel bu depodan yayın yapamıyor (deployable 0): sunucudaki kopyada .cpanel.yml yok ya da kopya temiz değil."
 
 res="$(api VersionControlDeployment/create "repository_root=$CPANEL_REPO")"
 ok "$res" 'cPanel yayını başlatamadı'
@@ -99,7 +104,10 @@ printf '%s\n' '--- yayın kaydı ---'
 read_remote "$log_path" || true
 printf '%s\n' '-------------------'
 case "$result" in
-    ok) printf '✓ madematik.com yayınlandı: %s\n' "$(git log -1 --format='%h %s')" ;;
+    ok) ;;
     fail) fail 'Yayın başarısız (kayıt yukarıda).' ;;
     *) fail 'Yayın 3 dakikada bitmedi; cPanel → Git Version Control → mADEMatik → Deploy sekmesine bakın.' ;;
 esac
+live="$(read_remote "$STATE_FILE" | tr -d '[:space:]')"
+[[ "$live" == "$HEAD_SHA" ]] || fail "Yayın bitti ama canlı kaydı ${live:0:7} (beklenen ${HEAD_SHA:0:7}); kayda bakın."
+printf '✓ madematik.com yayınlandı: %s\n' "$(git log -1 --format='%h %s')"
