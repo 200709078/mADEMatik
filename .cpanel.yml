@@ -1,0 +1,8 @@
+---
+# cPanel Git Version Control "Deploy HEAD Commit" (yerelde `npm run deploy`) bunu çalıştırır:
+# scripts/deploy-sync.sh son yayından bu yana değişen dosyaları public_html'e kopyalar ve önbellekleri
+# temizler. public/drAW, drAW2D, drAW3D, awCELL, awa, storage, .env ve storage/ korunur; hiçbir dosya
+# silinmez; migration veya composer.lock değişikliğinde yayın durur.
+deployment:
+  tasks:
+    - /bin/bash /home/mademati/repositories/mADEMatik/scripts/deploy-sync.sh /home/mademati/repositories/mADEMatik /home/mademati/public_html

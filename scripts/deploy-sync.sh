@@ -2,8 +2,13 @@
 # Seçici canlı sync: staging klondan canlı dizine yalnız değişen dosyaları aktarır.
 # Kullanım: ./scripts/deploy-sync.sh <kaynak-klon> <canli-dizin> [taban-commit]
 # Örnek:   ./scripts/deploy-sync.sh ~/repositories/mADEMatik ~/public_html
-# İlk çalıştırmada canlı gerideyse taban verilir:
+# Normalde .cpanel.yml çalıştırır (yerelde `npm run deploy`, bkz. scripts/deploy.sh).
+#
+# Son yayınlanan commit <canli-dizin>'in üst klasöründe .madematik-deployed-commit dosyasında
+# tutulur ve değişiklikler ondan bu yana hesaplanır. Kayıt yoksa taban, çekmeden önceki HEAD'dir;
+# elle verilen taban-commit kaydın önüne geçer:
 #          ./scripts/deploy-sync.sh ~/repositories/mADEMatik ~/public_html 6296151
+# Yayın durursa (migration) kayıt ilerlemez; sonraki çalıştırma aynı değişiklikleri yeniden görür.
 #
 # Kurallar:
 # - Migration (database/migrations) veya composer.lock değişmişse DURUR; bunlar ayrıca onay ister.
@@ -29,24 +34,31 @@ case "$DST" in
     */public/awa*|*/repositories/*) fail "Hedef yasaklı dizin: $DST" ;;
 esac
 
+STATE="${DEPLOY_STATE_FILE:-$(dirname -- "$DST")/.madematik-deployed-commit}"
+
 cd -- "$SRC"
 [[ "$(git branch --show-current)" == "main" ]] || fail 'Kaynak main dalında değil.'
 git fetch origin
 PRE_MERGE="$(git rev-parse HEAD)"
 AFTER="$(git rev-parse origin/main)"
-if [[ "$PRE_MERGE" == "$AFTER" && -z "$BASE_ARG" ]]; then
+if [[ -n "$BASE_ARG" ]]; then
+    BEFORE="$BASE_ARG"
+elif [[ -s "$STATE" ]]; then
+    BEFORE="$(tr -d '[:space:]' <"$STATE")"
+else
+    BEFORE="$PRE_MERGE"
+fi
+git cat-file -e "$BEFORE^{commit}" 2>/dev/null || fail "Taban commit bulunamadı: $BEFORE"
+BEFORE="$(git rev-parse "$BEFORE^{commit}")"
+# Kayıt yoksa taban hemen yazılır: yayın durursa bir sonraki çalıştırma aynı aralığı görür.
+[[ -s "$STATE" ]] || printf '%s\n' "$BEFORE" >"$STATE"
+git merge --ff-only origin/main
+
+if [[ "$BEFORE" == "$AFTER" ]]; then
     printf '%s\n' "Değişiklik yok ($AFTER)."
     exit 0
 fi
-
-CHANGED="$(git diff --name-only "$PRE_MERGE" "$AFTER")"
-git merge --ff-only origin/main
-BEFORE="$PRE_MERGE"
-if [[ -n "$BASE_ARG" ]]; then
-    git cat-file -e "$BASE_ARG^{commit}" 2>/dev/null || fail "Taban commit bulunamadı: $BASE_ARG"
-    BEFORE="$BASE_ARG"
-    CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
-fi
+CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
 
 NEEDS_APPROVAL="$(grep -E '^(database/migrations/|composer\.lock)' <<<"$CHANGED" || true)"
 if [[ -n "$NEEDS_APPROVAL" ]]; then
@@ -67,6 +79,7 @@ if grep -qE "$SAFE_EXAMPLE" <<<"$CHANGED"; then
     FILES="$(printf '%s\n.env.example' "$FILES")"
 fi
 if [[ -z "${FILES//[[:space:]]/}" ]]; then
+    printf '%s\n' "$AFTER" >"$STATE"
     printf '%s\n' 'Kopyalanacak dosya yok.'
     exit 0
 fi
@@ -91,11 +104,12 @@ done
 ARTISAN_TIMEOUT=""
 if command -v timeout >/dev/null 2>&1; then ARTISAN_TIMEOUT="timeout 100"; fi
 # shellcheck disable=SC2086
-$ARTISAN_TIMEOUT php -- "$DST/artisan" view:clear
+$ARTISAN_TIMEOUT php "$DST/artisan" view:clear
 if grep -qE '^(\.env\.example$|config/|routes/)' <<<"$CHANGED"; then
     # shellcheck disable=SC2086
-    $ARTISAN_TIMEOUT php -- "$DST/artisan" config:clear
+    $ARTISAN_TIMEOUT php "$DST/artisan" config:clear
     # shellcheck disable=SC2086
-    $ARTISAN_TIMEOUT php -- "$DST/artisan" route:clear
+    $ARTISAN_TIMEOUT php "$DST/artisan" route:clear
 fi
+printf '%s\n' "$AFTER" >"$STATE"
 printf '%s\n' "Tamam: $BEFORE -> $AFTER"
