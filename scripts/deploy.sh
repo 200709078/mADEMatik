@@ -27,7 +27,7 @@ api() {
     local args=() pair
     for pair in "$@"; do args+=(--data-urlencode "$pair"); done
     printf 'header = "Authorization: cpanel %s:%s"\n' "$CPANEL_USER" "$CPANEL_TOKEN" |
-        curl -fsS --max-time 120 -K - -G "${args[@]}" "https://$CPANEL_HOST:2083/execute/$fn" ||
+        curl -fsS --max-time 120 --retry 3 --retry-connrefused --retry-delay 3 -K - -G "${args[@]}" "https://$CPANEL_HOST:2083/execute/$fn" ||
         fail "cPanel'e ulaşılamadı ($fn)."
 }
 ok() { jq -e '.status == 1' >/dev/null <<<"$1" || fail "$2: $(jq -c '.errors // .' <<<"$1")"; }
