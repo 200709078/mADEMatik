@@ -52,7 +52,7 @@ if [[ "$(git rev-parse "$DEPLOYED^{commit}")" == "$HEAD_SHA" ]]; then
     exit 0
 fi
 printf '%s\n' 'Yayınlanacak commit'"'"'ler:'
-git log --format='  %h %s' "$DEPLOYED..HEAD"
+git --no-pager log --format='  %h %s' "$DEPLOYED..HEAD"
 
 BLOCKED="$(grep -oP "^BLOCKED='\K[^']+" scripts/deploy-sync.sh)"
 CHANGED="$(git diff --name-only "$DEPLOYED" HEAD)"
