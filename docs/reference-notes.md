@@ -52,7 +52,7 @@ Kısa açıklamalar yalnızca yerel kaynaklara dayanır; özelliklerin üretimde
 
 ## Adresler ve yayın sınırı
 
-Kullanıcının verdiği korunacak adresler: `https://madematik.com/drAW`, `https://madematik.com/drAW2D`, `https://madematik.com/drAW3D`, `https://madematik.com/awCELL` ve `https://awa.madematik.com`.
+Kullanıcının verdiği korunacak adresler: `https://madematik.com/drAW/`, `https://madematik.com/drAW2D/`, `https://madematik.com/drAW3D/`, `https://madematik.com/awCELL/` ve `https://awa.madematik.com`.
 
 Yerel klasörler ve HTML başlıklarında `drAW`, `drAW2D`, `drAW3D`, `awCELL` büyük/küçük harf kullanımları doğrulandı. drAW, drAW2D ve drAW3D Vite tabanı göreli `./` kullanıyor. Tam üretim URL ve mevcut hosting/public dizinleri bu salt okunur yerel inceleme ile bağımsız olarak doğrulanamadı; canlı yayın hazırlığında ayrıca onaylı inceleme gerektirir. URL'ler kullanıcı talimatındaki yazımla korunmalıdır.
 
