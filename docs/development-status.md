@@ -13,7 +13,7 @@
 
 ## Aşama 2
 
-- Üç manuel kontrollü banner, Hakkımda, filtreli/sayfalı Projelerim ve detaylar, genel/proje yorum arayüzleri, İletişim ve hukukî taslak sayfaları geliştirildi.
+- Üç manuel kontrollü banner, Hakkımda, sayfalı Projelerim (arama/filtre 2026-10-26’da kaldırıldı) ve detaylar, genel/proje yorum arayüzleri, İletişim ve hukukî taslak sayfaları geliştirildi.
 - Saat & Sayaç gerçek yerel zamanı, kalıcı başlangıç/bitiş, duraklatma/devam/sıfırlama ve büyütme/küçültmeyi içerir.
 - Kayıt/giriş/doğrulama/reset/profil ve bildirim görünümleri eklendi. SEO başlıkları, canonical, OG, sitemap, robots, ikon/manifest ve ortak hata sayfaları hazır.
 - Proje tanıtımları yeni içeriklerdir; yalnız kullanıcı talimatları ve salt okunur yerel kaynaklarla doğrulanan bilgiler kullanıldı. Sahte ziyaretçi yorumu, kişi bilgisi veya başarı istatistiği üretilmedi.

@@ -153,13 +153,14 @@ class AdminAndMediaTest extends TestCase
         $this->assertDatabaseHas('activity_logs', ['action' => 'category.deleted']);
     }
 
-    public function test_admin_project_search_finds_turkish_titles_and_all_editor_pages_render(): void
+    public function test_admin_project_list_shows_turkish_titles_and_all_editor_pages_render(): void
     {
         $this->admin();
         $category = ProjectCategory::create(['name' => ['tr' => 'Çizim araçları'], 'slug' => 'cizim', 'sort_order' => 0]);
         $project = $this->project(['title' => ['tr' => 'Öğrenmeyi kolaylaştıran çizim'], 'project_category_id' => $category->id]);
         $other = $this->project(['title' => ['tr' => 'Ayrı tablo uygulaması']]);
-        $this->get(route('admin.projects.index', ['q' => 'Öğrenmeyi']))->assertOk()->assertSee('Öğrenmeyi kolaylaştıran çizim')->assertDontSee('Ayrı tablo uygulaması');
+        // Proje araması kaldırıldı (2026-10-26): ?q listeyi daraltmaz.
+        $this->get(route('admin.projects.index', ['q' => 'Öğrenmeyi']))->assertOk()->assertSee('Öğrenmeyi kolaylaştıran çizim')->assertSee('Ayrı tablo uygulaması');
         foreach ([
             route('admin.projects.create'), route('admin.projects.edit', $project),
             route('admin.categories.create'), route('admin.categories.edit', $category),
@@ -438,10 +439,8 @@ class AdminAndMediaTest extends TestCase
     public function test_malformed_admin_search_and_contact_status_filters_are_rejected(): void
     {
         $this->admin();
-        foreach (['admin.projects.index', 'admin.users.index'] as $route) {
-            $this->getJson(route($route, ['q' => ['nested' => 'invalid']]))->assertUnprocessable()->assertJsonValidationErrors('q');
-            $this->getJson(route($route, ['q' => str_repeat('x', 101)]))->assertUnprocessable()->assertJsonValidationErrors('q');
-        }
+        $this->getJson(route('admin.users.index', ['q' => ['nested' => 'invalid']]))->assertUnprocessable()->assertJsonValidationErrors('q');
+        $this->getJson(route('admin.users.index', ['q' => str_repeat('x', 101)]))->assertUnprocessable()->assertJsonValidationErrors('q');
         $this->getJson(route('admin.contact-messages.index', ['status' => ['new']]))->assertUnprocessable()->assertJsonValidationErrors('status');
     }
 
@@ -471,8 +470,8 @@ class AdminAndMediaTest extends TestCase
         $payload['sliders'][0]['cta_url'] = ['invalid'];
         $this->from(route('admin.settings.edit'))->put(route('admin.settings.update'), $payload)
             ->assertRedirect(route('admin.settings.edit'))->assertSessionHasErrors('sliders.0.cta_url');
-        $this->from(route('admin.projects.index'))->get(route('admin.projects.index', ['q' => ['invalid']]))
-            ->assertRedirect(route('admin.projects.index'))->assertSessionHasErrors('q');
+        $this->from(route('admin.users.index'))->get(route('admin.users.index', ['q' => ['invalid']]))
+            ->assertRedirect(route('admin.users.index'))->assertSessionHasErrors('q');
         $this->assertDatabaseCount('projects', 0);
         $this->assertDatabaseCount('settings', 0);
     }

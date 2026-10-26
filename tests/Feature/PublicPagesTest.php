@@ -55,11 +55,12 @@ class PublicPagesTest extends TestCase
         $this->get('/sitemap.xml')->assertOk()->assertDontSee($project->slug);
     }
 
-    public function test_project_filters_preserve_queries_and_project_detail_metadata(): void
+    public function test_project_list_ignores_old_filter_queries_and_project_detail_has_metadata(): void
     {
         $project = $this->project();
-        $this->get('/projelerim?q=Test&category=test-kategorisi&status=developing')->assertOk()->assertSee('Test Projesi');
-        $this->get('/projelerim?q=Bulunmayan')->assertOk()->assertSee('Bu aramaya uygun proje yok');
+        $this->get('/projelerim')->assertOk()->assertSee('Test Projesi');
+        // Arama/filtre kaldırıldı (2026-10-26): eski bağlantılardaki parametreler listeyi daraltmaz.
+        $this->get('/projelerim?q=Bulunmayan&category=yok&status=completed')->assertOk()->assertSee('Test Projesi')->assertDontSee('Projeler hazırlanıyor');
         $this->get('/projelerim/'.$project->slug)->assertOk()
             ->assertSee('Test Projesi | mADEMatik Solutions')
             ->assertSee('name="description" content="Yalnızca test için açıklama."', false)

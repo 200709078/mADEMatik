@@ -14,12 +14,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $data = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
-        $query = Project::with('category')->orderBy('sort_order')->latest();
-        if (($data['q'] ?? '') !== '') { $term = addcslashes($data['q'], '%_\\'); $query->where(fn ($q) => $q->where('title->tr', 'like', '%'.$term.'%')->orWhere('slug', 'like', '%'.$term.'%')); }
-        return view('admin.projects.index', ['projects' => $query->paginate(20)->withQueryString()]);
+        return view('admin.projects.index', ['projects' => Project::with('category')->orderBy('sort_order')->latest()->paginate(20)]);
     }
     public function create() { return view('admin.projects.form', ['project' => new Project(['status' => 'developing', 'sort_order' => 0]), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }
     public function edit(Project $project) { return view('admin.projects.form', ['project' => $project->load(['media', 'downloads']), 'categories' => ProjectCategory::orderBy('sort_order')->get()]); }

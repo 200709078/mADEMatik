@@ -233,14 +233,12 @@ try {
         assert.ok(links.some(link => link.href === 'https://awa.madematik.com'), 'aWa bağımsız bağlantısı');
         assert.ok(!links.some(link => /https:\/\/(draw|draw2d|draw3d|awcell)\./i.test(link.href || '')), 'Bağımsız uygulamalar için yeni subdomain oluşturulmamalı');
     });
-    await check('Proje arama formu ve boş sonuç durumu', async () => {
+    await check('Projelerim: arama/filtre yok, eski parametreler listeyi daraltmaz', async () => {
         await ready(page, '/projelerim');
-        await page.getByLabel('Projelerde ara', { exact: true }).fill('QA-Bulunmayan-Proje');
-        await page.getByRole('button', { name: 'Filtrele', exact: true }).click(); await page.waitForLoadState('networkidle');
-        assert.equal(new URL(page.url()).searchParams.get('q'), 'QA-Bulunmayan-Proje');
-        assert.equal(await page.getByText('Bu aramaya uygun proje yok', { exact: true }).isVisible(), true);
-        await page.getByRole('link', { name: 'Filtreleri temizle', exact: true }).first().click(); await page.waitForLoadState('networkidle');
-        assert.equal(new URL(page.url()).search, '');
+        const cards = await page.getByRole('link', { name: 'Projeyi İncele' }).count();
+        assert.equal(await page.getByRole('search').count(), 0);
+        await ready(page, '/projelerim?q=QA-Bulunmayan-Proje&status=completed');
+        assert.equal(await page.getByRole('link', { name: 'Projeyi İncele' }).count(), cards);
     });
     await check('İngilizce yayınları ve harici font/network isteği yok', async () => {
         for (const route of ['/en', '/en/about', '/en/projects']) await ready(page, route, 404);

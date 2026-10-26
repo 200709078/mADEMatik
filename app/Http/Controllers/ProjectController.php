@@ -1,19 +1,13 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\{Project,ProjectCategory,Comment};
+use App\Models\Project;
 use App\Services\Settings;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 class ProjectController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $data=$request->validate(['q'=>['nullable','string','max:100'],'category'=>['nullable','string','max:100'],'status'=>['nullable',Rule::in(['developing','live','completed'])]]);
-        $query=Project::published()->with('category')->orderBy('sort_order')->latest();
-        if (!empty($data['q'])) $query->where('title->tr','like','%'.addcslashes($data['q'],'%_\\').'%');
-        if (!empty($data['category'])) $query->whereHas('category',fn($q)=>$q->where('slug',$data['category']));
-        if (!empty($data['status'])) $query->where('status',$data['status']);
-        return view('projects.index',['siteSettings'=>Settings::allLocalized(),'projects'=>$query->paginate(9)->withQueryString(),'categories'=>ProjectCategory::whereHas('projects',fn($q)=>$q->published())->orderBy('sort_order')->get(),'seo'=>['title'=>'Projelerim | mADEMatik Solutions','description'=>'mADEMatik Solutions bağımsız uygulamaları ve dijital projeleri.','canonical'=>route('projects.index')]]);
+        $projects=Project::published()->with('category')->orderBy('sort_order')->latest()->paginate(9);
+        return view('projects.index',['siteSettings'=>Settings::allLocalized(),'projects'=>$projects,'seo'=>['title'=>'Projelerim | mADEMatik Solutions','description'=>'mADEMatik Solutions bağımsız uygulamaları ve dijital projeleri.','canonical'=>route('projects.index')]]);
     }
     public function show(string $slug)
     {
