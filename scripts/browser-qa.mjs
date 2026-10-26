@@ -231,7 +231,7 @@ try {
         const detail = links.find(link => link.href?.includes('/projelerim/') && link.text.includes('Projeyi İncele'));
         if (detail) { await ready(page, new URL(detail.href, baseURL).pathname); await noOverflow(page, 'Proje detayı'); await accessibility(page, 'Proje detayı'); }
         assert.ok(links.some(link => link.href === 'https://awa.madematik.com'), 'aWa bağımsız bağlantısı');
-        assert.ok(!links.some(link => /https:\/\/(draw|geomat|avcell)\./i.test(link.href || '')), 'Bağımsız uygulamalar için yeni subdomain oluşturulmamalı');
+        assert.ok(!links.some(link => /https:\/\/(draw|draw2d|draw3d|awcell)\./i.test(link.href || '')), 'Bağımsız uygulamalar için yeni subdomain oluşturulmamalı');
     });
     await check('Proje arama formu ve boş sonuç durumu', async () => {
         await ready(page, '/projelerim');

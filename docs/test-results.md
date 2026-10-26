@@ -23,7 +23,7 @@ Testler Laravel 13/PHP 8.4, Node 20, MariaDB ve yerel Chromium ile yalnız proje
 
 MariaDB ve tarayıcı testleri için TCP erişimi kapalı, ayrı veri dizini ve soketi olan yeni QA örneği oluşturuldu. Sahte `.test` alıcılar ve yalnız test hesapları kullanıldı. PHPUnit mail fake/array, çalışma zamanı ise log mailer kullandı. SMTP gönderimi ve gerçek alıcılara e-posta gönderimi yapılmadı. QA kimlik bilgileri, `.env` ve anahtarlar Git'e veya bu rapora dahil edilmez.
 
-Apache deneyi yeni sahte `drAW`, `GeoMatik2D`, `GeoMatik3D`, `avCELL` dizinlerinde çalıştı. Bağımsız projelerin dosyaları kopyalanmadı veya değiştirilmedi; aWa uygulamasına, hesabına ve veritabanına bağlantı kurulmadı. Tarayıcıda mevcut uygulama bağlantılarının hedefleri kontrol edildi, bu hedeflerde test çalıştırılmadı.
+Apache deneyi yeni sahte `drAW`, `drAW2D`, `drAW3D`, `awCELL` dizinlerinde çalıştı. Bağımsız projelerin dosyaları kopyalanmadı veya değiştirilmedi; aWa uygulamasına, hesabına ve veritabanına bağlantı kurulmadı. Tarayıcıda mevcut uygulama bağlantılarının hedefleri kontrol edildi, bu hedeflerde test çalıştırılmadı.
 
 ## Doğrulanan işlevler
 

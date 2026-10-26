@@ -1,6 +1,6 @@
 # mADEMatik Solutions
 
-madematik.com için sıfırdan geliştirilen Laravel 13 uygulaması. Uygulama doğrudan bu klasörün kökündedir; geliştirme sınırları ve dört aşamalı çalışma akışı [AGENTS.md](AGENTS.md) dosyasındadır.
+madematik.com için sıfırdan geliştirilen Laravel 13 uygulaması. Uygulama doğrudan bu klasörün kökündedir; geliştirme kuralları ve çalışma notları [CLAUDE.md](CLAUDE.md) dosyasındadır.
 
 Blade, Tailwind CSS 4, Alpine.js, Inter ve Lucide kullanılır. İlk sürüm Türkçedir; çeviri dosyaları ve JSON içerik alanları TR/EN için hazırlanır. İngilizce içerik yayına hazır olmadan dil seçici ve İngilizce sayfalar açılmaz.
 
@@ -82,7 +82,7 @@ Gizli bilgi içermeyen [üretim ortamı şablonu](docs/production.env.example), 
 
 `MAIL_ADMIN_NOTIFICATION_ADDRESS`, yönetici zil bildirimlerinin e-posta olarak da iletileceği özel adresi belirler. Bir olay birden çok yöneticiye bildirildiğinde bu adrese tek e-posta gönderilir; üyelerin özel bildirimleri bu adrese kopyalanmaz. E-posta gönderimi DB işlemi tamamlandıktan sonra yapılır; SMTP hatası kaydedilmiş iletişim mesajını veya site bildirimini geri almaz.
 
-`/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` mevcut fiziksel yayın dizinleri korunur. aWa bağımsız olarak `https://awa.madematik.com` üzerinde çalışır; bu uygulama yalnızca bağlantı verir. Ortak oturum veya çapraz veritabanı bağlantısı kurulmaz.
+`/drAW`, `/drAW2D`, `/drAW3D`, `/awCELL` mevcut fiziksel yayın dizinleri (`public/` altında) korunur; her biri kendi deposundan `npm run deploy` ile yüklenir. aWa bağımsız olarak `https://awa.madematik.com` üzerinde çalışır; bu uygulama yalnızca bağlantı verir. Ortak oturum veya çapraz veritabanı bağlantısı kurulmaz.
 
 ## Testler ve yayın durumu
 

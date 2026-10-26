@@ -43,17 +43,17 @@ Salt okunur kaynak proje: `~/Belgeler/aydin_language_academy`.
 | Ürün | Yerel kaynak | Kaynakla doğrulanan kısa tanıtım | Teknolojiler |
 | --- | --- | --- | --- |
 | drAW | `~/Belgeler/drAW/package.json`, `src/` | Etkileşimli beyaz tahta ve çizim uygulaması | TypeScript, Vite, Electron |
-| GeoMatik2D | `~/Belgeler/aWa_GEO/GeoMatik2D/renderer/index.html` | İki boyutlu grafik, fonksiyon ve matematik/geometri aracı; yardımda dizi, limit, türev, bileşke, teğet ve parçalı fonksiyon komutları var | JavaScript, Canvas, math.js |
-| GeoMatik3D | `~/Belgeler/aWa_GEO/GeoMatik3D/package.json`, `src/main.ts` | Üç boyutlu geometri aracı; nokta, doğru, ışın, açı, düzlem, küre, prizma, piramit, silindir ve koni araçları var | TypeScript, Vite, Three.js |
-| avCELL | `~/Belgeler/aWa_GEO/avCELL/public/index.html`, `app.js` | Hücre tabanlı çalışma kitabı; formül, biçimlendirme, sıralama, filtre ve grafik araçları var | JavaScript, HTML, CSS |
+| drAW2D | `~/Belgeler/drAW2D/index.html` | İki boyutlu grafik, fonksiyon ve matematik/geometri aracı; yardımda dizi, limit, türev, bileşke, teğet ve parçalı fonksiyon komutları var | TypeScript, Vite, Canvas, math.js |
+| drAW3D | `~/Belgeler/drAW3D/package.json`, `src/main.ts` | Üç boyutlu geometri aracı; nokta, doğru, ışın, açı, düzlem, küre, prizma, piramit, silindir ve koni araçları var | TypeScript, Vite, Three.js |
+| awCELL | `~/Belgeler/awCELL/index.html`, `app.js` | Hücre tabanlı çalışma kitabı; formül, biçimlendirme, sıralama, filtre ve grafik araçları var | JavaScript, HTML, CSS |
 | aWa | `~/Belgeler/aWa/routes/web.php`, `composer.json`, `package.json` | Okul, öğrenci ve personel; sınav dağıtımı ve oturma planı yönetimi | Laravel, Vue, Inertia |
 
 Kısa açıklamalar yalnızca yerel kaynaklara dayanır; özelliklerin üretimde mevcut sürümle eşleştiği iddia edilmez. Ürün kaynakları ve görselleri yeni projeye kopyalanmadı.
 
 ## Adresler ve yayın sınırı
 
-Kullanıcının verdiği korunacak adresler: `https://madematik.com/drAW`, `https://madematik.com/GeoMatik2D`, `https://madematik.com/GeoMatik3D`, `https://madematik.com/avCELL` ve `https://awa.madematik.com`.
+Kullanıcının verdiği korunacak adresler: `https://madematik.com/drAW`, `https://madematik.com/drAW2D`, `https://madematik.com/drAW3D`, `https://madematik.com/awCELL` ve `https://awa.madematik.com`.
 
-Yerel klasörler ve HTML başlıklarında `drAW`, `GeoMatik2D`, `GeoMatik3D`, `avCELL` büyük/küçük harf kullanımları doğrulandı. drAW ve GeoMatik3D Vite tabanı göreli `./` kullanıyor. Tam üretim URL ve mevcut hosting/public dizinleri bu salt okunur yerel inceleme ile bağımsız olarak doğrulanamadı; canlı yayın hazırlığında ayrıca onaylı inceleme gerektirir. URL'ler kullanıcı talimatındaki yazımla korunmalıdır.
+Yerel klasörler ve HTML başlıklarında `drAW`, `drAW2D`, `drAW3D`, `awCELL` büyük/küçük harf kullanımları doğrulandı. drAW, drAW2D ve drAW3D Vite tabanı göreli `./` kullanıyor. Tam üretim URL ve mevcut hosting/public dizinleri bu salt okunur yerel inceleme ile bağımsız olarak doğrulanamadı; canlı yayın hazırlığında ayrıca onaylı inceleme gerektirir. URL'ler kullanıcı talimatındaki yazımla korunmalıdır.
 
 aWa bağımsız uygulama/veritabanı/yönetim paneli olarak kalır. Ana site yalnızca ürün tanıtımı ve haricî bağlantı sağlar. SSO, çapraz veritabanı bağlantısı ve aWa hesap işlemi uygulanmaz.

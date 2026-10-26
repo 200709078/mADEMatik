@@ -12,7 +12,7 @@ fixture=Path(tempfile.mkdtemp(prefix='routing-qa-',dir=runtime))
 public=fixture/'public';public.mkdir()
 shutil.copy2(project/'public/.htaccess',public/'.htaccess')
 (public/'index.php').write_text('<?php header("Content-Type: text/plain"); echo "QA_LARAVEL_FALLBACK:" . parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);')
-apps=['drAW','GeoMatik2D','GeoMatik3D','avCELL']
+apps=['drAW','drAW2D','drAW3D','awCELL']
 for name in apps:
     directory=public/name;directory.mkdir()
     (directory/'index.html').write_text('QA_INDEPENDENT_'+name)

@@ -8,7 +8,7 @@
 # Kurallar:
 # - Migration (database/migrations) veya composer.lock değişmişse DURUR; bunlar ayrıca onay ister.
 # - Korumalı yollar asla kopyalanmaz: .env*, storage/, bootstrap/cache/,
-#   public/{drAW,GeoMatik2D,GeoMatik3D,avCELL,awa,storage}.
+#   public/{drAW,drAW2D,drAW3D,awCELL,awa,storage}.
 # - Silinen dosyalar canlıdan silinmez, listelenir.
 # - public/build/manifest.json en son kopyalanır.
 # - Sonunda hedefte önbellek temizliği çalışır (migrate/seed içermez). Bu hostingde
@@ -55,7 +55,7 @@ if [[ -n "$NEEDS_APPROVAL" ]]; then
     exit 1
 fi
 
-BLOCKED='^(\.env($|\.)|storage/|bootstrap/cache/|public/(drAW|GeoMatik2D|GeoMatik3D|avCELL|awa|storage)(/|$))'
+BLOCKED='^(\.env($|\.)|storage/|bootstrap/cache/|public/(drAW|drAW2D|drAW3D|awCELL|awa|storage)(/|$))'
 SAFE_EXAMPLE='^\.env\.example$'
 SKIP="$(grep -E "$BLOCKED" <<<"$CHANGED" | grep -vE "$SAFE_EXAMPLE" || true)"
 if [[ -n "$SKIP" ]]; then

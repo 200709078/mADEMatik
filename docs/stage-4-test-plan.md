@@ -42,7 +42,7 @@ Testler tekrarlanabilir senaryolarla yürütülür. Önce sunucu tarafı işlev/
 | SEO/görseller | Başlık/meta/canonical/OG, sitemap yalnız yayındaki URL'ler, robots, slug, güvenli dış link; boyut/alt/picture/srcset/lazy; ilk hero yüklemesi lazy değildir; raster dosyalar SVG diye sunulmaz. |
 | Güvenlik | CSRF, SQL injection, XSS escape, IDOR, oturum cookie/HTTPS, authorization her endpoint; upload, zararlı redirect/link, throttling, gizli dosya erişimi, yönetici parola doğrulama; debug kapalı üretim ayarı. |
 | Performans | Örnek veriyle sorgu/N+1 ve sayfalama; Vite/font/görsel boyutları, ağ waterfall ve temel Lighthouse kontrolleri; gerçek sunucuya yük testi yapılmaz. |
-| Fiziksel uygulamalar | Yerel yeni fixture dizinleriyle Apache fiziksel `-f`/`-d` önceliği ve Laravel fallback davranışı; `/drAW`, `/GeoMatik2D`, `/GeoMatik3D`, `/avCELL` asset/index erişimi bozulmaz. Kaynak uygulamalar kopyalanmaz/değiştirilmez. Canlı web sunucusu farklıysa onun kuralları ayrıca onaylı yayın hazırlığında doğrulanır. |
+| Fiziksel uygulamalar | Yerel yeni fixture dizinleriyle Apache fiziksel `-f`/`-d` önceliği ve Laravel fallback davranışı; `/drAW`, `/drAW2D`, `/drAW3D`, `/awCELL` asset/index erişimi bozulmaz. Kaynak uygulamalar kopyalanmaz/değiştirilmez. Canlı web sunucusu farklıysa onun kuralları ayrıca onaylı yayın hazırlığında doğrulanır. |
 
 ## Kabul ve açık kalan canlı kontroller
 

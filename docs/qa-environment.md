@@ -39,7 +39,7 @@ Bağımsız public uygulama klasörlerinin yönlendirme kontrolü ayrı, sahte A
 python3 scripts/check-public-routing.py
 ```
 
-Bu kontrol sistem Apache/PHP modülünün mevcut olmasını gerektirir; paket kurmaz. Yalnız proje içindeki geçici fixture ve loopback `8016` portunu kullanır, kontrol bitince kendi Apache sürecini kapatır. Gerçek drAW/GeoMatik/avCELL/aWa kaynaklarına veya yayın klasörlerine bağlanmaz.
+Bu kontrol sistem Apache/PHP modülünün mevcut olmasını gerektirir; paket kurmaz. Yalnız proje içindeki geçici fixture ve loopback `8016` portunu kullanır, kontrol bitince kendi Apache sürecini kapatır. Gerçek drAW/drAW2D/drAW3D/awCELL/aWa kaynaklarına veya yayın klasörlerine bağlanmaz.
 
 HTTP sunucusunu kendi terminalinde `Ctrl+C` ile kapatın; ardından:
 
