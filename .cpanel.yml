@@ -3,6 +3,9 @@
 # scripts/deploy-sync.sh son yayından bu yana değişen dosyaları public_html'e kopyalar ve önbellekleri
 # temizler. public/drAW, drAW2D, drAW3D, awCELL, awa, storage, .env ve storage/ korunur; hiçbir dosya
 # silinmez; migration veya composer.lock değişikliğinde yayın durur.
+# İlk görev kopyayı GitHub'dan çeker: cPanel'in güncellemesi her zaman çekmiyor ve betiğin en yeni hali
+# çalışmalı. cPanel'in git'i eskidir (ör. `git branch --show-current` yok); betikler eski komutlarla yazılır.
 deployment:
   tasks:
+    - /bin/bash -c 'cd /home/mademati/repositories/mADEMatik && git fetch -q origin && git merge -q --ff-only origin/main'
     - /bin/bash /home/mademati/repositories/mADEMatik/scripts/deploy-sync.sh /home/mademati/repositories/mADEMatik /home/mademati/public_html

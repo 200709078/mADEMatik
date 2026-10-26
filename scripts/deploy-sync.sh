@@ -37,7 +37,7 @@ esac
 STATE="${DEPLOY_STATE_FILE:-$(dirname -- "$DST")/.madematik-deployed-commit}"
 
 cd -- "$SRC"
-[[ "$(git branch --show-current)" == "main" ]] || fail 'Kaynak main dalında değil.'
+[[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || fail 'Kaynak main dalında değil.'
 git fetch origin
 PRE_MERGE="$(git rev-parse HEAD)"
 AFTER="$(git rev-parse origin/main)"
