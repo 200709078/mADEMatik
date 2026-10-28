@@ -203,6 +203,9 @@ export function createWorldClockTool(labels = {}, environment = {}) {
             this.chooseAvailableCity();
         },
 
+        // The card and its permission button appear only where the browser can locate the device.
+        get locationSupported() { return !!browser.isSecureContext && typeof navigator?.geolocation?.getCurrentPosition === 'function'; },
+
         get hasLocation() { return this.locationState === 'ready' && this.solarData !== null; },
 
         get locationMessage() {
@@ -236,7 +239,12 @@ export function createWorldClockTool(labels = {}, environment = {}) {
                             if (destroyed || version !== permissionCheckVersion) return;
                             if (status?.state === 'granted') {
                                 if (!this.hasLocation) this.requestLocation();
-                            } else this.clearLocation();
+                                return;
+                            }
+                            // Refused while a position was awaited (the browser's prompt): say why, not the idle hint.
+                            const refused = status?.state === 'denied' && this.locationState === 'loading';
+                            this.clearLocation();
+                            if (refused) { this.locationState = 'error'; this.locationError = labels.locationDenied || ''; }
                         };
                         if (status) {
                             const previous = status.onchange;
@@ -289,7 +297,8 @@ export function createWorldClockTool(labels = {}, environment = {}) {
             try {
                 navigator.geolocation.getCurrentPosition(position => {
                     if (!current()) return;
-                    if (permissionStatus && permissionStatus.state !== 'granted') { this.clearLocation(); return; }
+                    // A one-time grant leaves the state at 'prompt'; only a refusal makes a late position stale.
+                    if (permissionStatus?.state === 'denied') { this.clearLocation(); return; }
                     settled = true;
                     const latitude = position?.coords?.latitude;
                     const longitude = position?.coords?.longitude;

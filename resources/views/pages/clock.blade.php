@@ -3,7 +3,7 @@
 @section('content')
 <section class="container-site section-space">
     <div class="section-heading">
-        <p class="eyebrow mb-4">{{ __('ui.local_time') }} · {{ __('ui.countdown') }}</p>
+        <p class="eyebrow mb-4">{{ __('ui.local_time') }} · {{ __('ui.countdown') }} · {{ __('ui.stopwatch') }}</p>
         <h1 class="heading-page">{{ __('ui.clock') }}</h1>
         <p class="text-muted mt-5 leading-8">{{ __('ui.clock_intro') }}</p>
     </div>
@@ -13,8 +13,9 @@
                 <div class="flex gap-1 rounded-xl surface-muted p-1">
                     <a href="{{ route('home') }}" class="button button-sm button-ghost button-icon" aria-label="{{ __('ui.home_control') }}" title="{{ __('ui.home_control') }}"><x-icon name="home" class="h-4 w-4" /></a>
                     <div class="flex gap-1" role="tablist" aria-label="{{ __('ui.clock') }}">
-                        <button type="button" x-ref="clockTab" id="clock-tab" role="tab" @click="setMode('clock')" @keydown.arrow-right.prevent="setMode('timer');$refs.timerTab.focus()" @keydown.arrow-left.prevent="setMode('timer');$refs.timerTab.focus()" :aria-selected="mode==='clock'" :tabindex="mode==='clock'?0:-1" aria-controls="clock-display" aria-label="{{ __('ui.clock_tab') }}" title="{{ __('ui.clock_tab') }}" class="button button-sm button-icon" :class="mode==='clock'?'button-primary':'button-ghost'"><x-icon name="clock" class="h-4 w-4" /></button>
-                        <button type="button" x-ref="timerTab" id="timer-tab" role="tab" @click="setMode('timer')" @keydown.arrow-right.prevent="setMode('clock');$refs.clockTab.focus()" @keydown.arrow-left.prevent="setMode('clock');$refs.clockTab.focus()" :aria-selected="mode==='timer'" :tabindex="mode==='timer'?0:-1" aria-controls="timer-display" aria-label="{{ __('ui.timer_tab') }}" title="{{ __('ui.timer_tab') }}" class="button button-sm button-icon" :class="mode==='timer'?'button-primary':'button-ghost'"><x-icon name="timer" class="h-4 w-4" /></button>
+                        <button type="button" x-ref="clockTab" id="clock-tab" role="tab" @click="setMode('clock')" @keydown.arrow-right.prevent="cycleMode(1)" @keydown.arrow-left.prevent="cycleMode(-1)" :aria-selected="mode==='clock'" :tabindex="mode==='clock'?0:-1" aria-controls="clock-display" aria-label="{{ __('ui.clock_tab') }}" title="{{ __('ui.clock_tab') }}" class="button button-sm button-icon" :class="mode==='clock'?'button-primary':'button-ghost'"><x-icon name="clock" class="h-4 w-4" /></button>
+                        <button type="button" x-ref="timerTab" id="timer-tab" role="tab" @click="setMode('timer')" @keydown.arrow-right.prevent="cycleMode(1)" @keydown.arrow-left.prevent="cycleMode(-1)" :aria-selected="mode==='timer'" :tabindex="mode==='timer'?0:-1" aria-controls="timer-display" aria-label="{{ __('ui.timer_tab') }}" title="{{ __('ui.timer_tab') }}" class="button button-sm button-icon" :class="mode==='timer'?'button-primary':'button-ghost'"><x-icon name="hourglass" class="h-4 w-4" /></button>
+                        <button type="button" x-ref="stopwatchTab" id="stopwatch-tab" role="tab" @click="setMode('stopwatch')" @keydown.arrow-right.prevent="cycleMode(1)" @keydown.arrow-left.prevent="cycleMode(-1)" :aria-selected="mode==='stopwatch'" :tabindex="mode==='stopwatch'?0:-1" aria-controls="stopwatch-display" aria-label="{{ __('ui.stopwatch_tab') }}" title="{{ __('ui.stopwatch_tab') }}" class="button button-sm button-icon" :class="mode==='stopwatch'?'button-primary':'button-ghost'"><x-icon name="timer" class="h-4 w-4" /></button>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -78,6 +79,30 @@
                     </div>
                 </div>
                 <p class="text-muted mx-auto mt-6 max-w-xl text-xs leading-6">{{ __('ui.timer_storage') }}</p>
+            </div>
+            <div id="stopwatch-display" role="tabpanel" aria-labelledby="stopwatch-tab" x-cloak x-show="mode==='stopwatch'" class="surface-muted rounded-xl py-6 text-center">
+                <h2 class="text-muted mb-6 text-lg font-medium">{{ __('clock.stopwatch_heading') }}</h2>
+                <output x-ref="stopwatchFace" class="clock-face block" role="timer" aria-live="off" x-text="stopwatchText"></output>
+                <p class="mt-4 min-h-7 text-sm text-muted" aria-live="polite">
+                    <span x-show="stopwatchRunning">{{ __('clock.stopwatch_running') }}</span><span x-show="!stopwatchRunning&&stopwatchElapsed>0">{{ __('clock.stopwatch_paused') }}</span><span x-show="!stopwatchRunning&&stopwatchElapsed===0">{{ __('clock.stopwatch_ready') }}</span>
+                </p>
+                <div class="mt-7 flex flex-wrap justify-center gap-3">
+                    <x-ui.button x-show="!stopwatchRunning&&stopwatchElapsed===0" @click="startStopwatch()" title="{{ __('ui.start') }}"><x-icon name="play" class="h-4 w-4" />{{ __('ui.start') }}</x-ui.button>
+                    <x-ui.button x-cloak x-show="!stopwatchRunning&&stopwatchElapsed>0" @click="startStopwatch()" title="{{ __('ui.resume') }}"><x-icon name="play" class="h-4 w-4" />{{ __('ui.resume') }}</x-ui.button>
+                    <x-ui.button x-cloak x-show="stopwatchRunning" @click="pauseStopwatch()" variant="secondary" title="{{ __('ui.pause') }}"><x-icon name="pause" class="h-4 w-4" />{{ __('ui.pause') }}</x-ui.button>
+                    <x-ui.button x-cloak x-show="stopwatchRunning" @click="lap()" variant="outline" ::disabled="laps.length>=maxLaps" title="{{ __('clock.lap') }}"><x-icon name="flag" class="h-4 w-4" />{{ __('clock.lap') }}</x-ui.button>
+                    <x-ui.button @click="resetStopwatch()" variant="outline" ::disabled="!stopwatchRunning&&stopwatchElapsed===0" title="{{ __('ui.reset') }}"><x-icon name="rotate-ccw" class="h-4 w-4" />{{ __('ui.reset') }}</x-ui.button>
+                </div>
+                <ol x-cloak x-show="laps.length" data-testid="stopwatch-laps" class="mx-auto mt-8 max-w-md divide-y divide-[var(--border)] text-left" aria-label="{{ __('clock.laps') }}">
+                    <template x-for="row in lapRows" :key="row.number">
+                        <li class="flex items-baseline justify-between gap-4 px-2 py-2 font-mono tabular-nums">
+                            <span class="text-muted font-sans text-sm" x-text="@js(__('clock.lap_number',['number'=>':number'])).replace(':number',row.number)"></span>
+                            <span class="text-muted text-sm" x-text="'+'+row.split"></span>
+                            <span class="font-semibold" x-text="row.total"></span>
+                        </li>
+                    </template>
+                </ol>
+                <p class="text-muted mx-auto mt-6 max-w-xl text-xs leading-6">{{ __('clock.stopwatch_storage') }}</p>
             </div>
             <p x-cloak x-show="notice" x-text="notice" role="status" class="mt-4 text-center text-sm text-[var(--warning)]"></p>
             <p x-cloak x-show="viewNotice" x-text="viewNotice" role="status" class="mt-4 text-center text-sm text-[var(--warning)]"></p>

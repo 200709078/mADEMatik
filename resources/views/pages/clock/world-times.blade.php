@@ -28,11 +28,12 @@
         </form>
         <p class="text-muted mt-3 text-xs leading-6">{{ __('clock.world_privacy') }}</p>
     </x-ui.card>
-    <x-ui.card x-cloak x-show="hasLocation" data-testid="solar-times" class="card-padding" aria-labelledby="solar-title">
+    <x-ui.card x-cloak x-show="locationSupported" data-testid="solar-times" class="card-padding" aria-labelledby="solar-title">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div><h2 id="solar-title" class="flex items-center gap-3 text-xl font-semibold"><x-icon name="sun" class="h-5 w-5 text-[var(--brand-text)]" />{{ __('clock.solar_title') }}</h2><p class="text-muted mt-2 text-sm leading-6">{{ __('clock.solar_intro') }}</p></div>
         </div>
         <p class="text-muted mt-5 text-sm leading-6" role="status" x-text="locationMessage"></p>
+        <x-ui.button x-show="!hasLocation&&locationState!=='loading'" data-testid="location-permission" size="sm" class="mt-4" @click="requestLocation()" title="{{ __('clock.use_location') }}"><x-icon name="map-pin" class="h-4 w-4" />{{ __('clock.use_location') }}</x-ui.button>
         <template x-if="hasLocation">
             <div>
                 <p class="mt-4 text-sm font-medium" x-text="solarData.date"></p>

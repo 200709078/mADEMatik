@@ -1,3 +1,17 @@
+const MODES = ['clock', 'timer', 'stopwatch'];
+// Kronometre en fazla 100 saat ve 99 tur tutar; bozuk kayıtlar bu sınırlarla elenir.
+const STOPWATCH_LIMIT = 360000000;
+export const MAX_LAPS = 99;
+
+// 0,1 saniyelik çözünürlük: bir saatten kısaysa MM:SS.d, uzunsa HH:MM:SS.d.
+export function stopwatchFormat(milliseconds) {
+    const tenths = Math.floor(Math.max(0, milliseconds) / 100);
+    const seconds = Math.floor(tenths / 10);
+    const parts = [Math.floor(seconds / 60) % 60, seconds % 60].map(part => String(part).padStart(2, '0'));
+    if (seconds >= 3600) parts.unshift(String(Math.floor(seconds / 3600)).padStart(2, '0'));
+    return `${parts.join(':')}.${tenths % 10}`;
+}
+
 export function createClockTool(labels = {}) {
     return {
     labels,
@@ -16,12 +30,17 @@ export function createClockTool(labels = {}) {
     expanded: false,
     interval: null,
     notice: '',
+    stopwatchElapsed: 0,
+    stopwatchStartedAt: null,
+    laps: [],
+    maxLaps: MAX_LAPS,
     storageKey: 'madematik-clock-v1',
+    stopwatchStorageKey: 'madematik-stopwatch-v1',
     viewStorageKey: 'madematik-clock-view-v1',
     soundStorageKey: 'madematik-clock-sound-v1',
     soundOn: true,
     audioCtx: null,
-    zoomLevels: { clock: 100, timer: 100 },
+    zoomLevels: { clock: 100, timer: 100, stopwatch: 100 },
     zoomAtLimit: false,
     viewNotice: '',
     presetMinutes: [5, 10, 15, 20, 40, 60],
@@ -43,15 +62,26 @@ export function createClockTool(labels = {}) {
                 this.endsAt = saved.endsAt;
                 this.running = saved.running;
                 this.completed = saved.completed;
-                this.mode = saved.mode === 'timer' ? 'timer' : 'clock';
+                this.mode = MODES.includes(saved.mode) ? saved.mode : 'clock';
                 this.hours = Math.floor(this.total / 3600000);
                 this.minutes = Math.floor(this.total / 60000) % 60;
                 this.seconds = Math.floor(this.total / 1000) % 60;
             }
         } catch (_) { this.notice = this.labels.storageUnavailable; }
         try {
+            const saved = JSON.parse(localStorage.getItem(this.stopwatchStorageKey) || 'null');
+            const validTime = value => Number.isFinite(value) && value >= 0 && value <= STOPWATCH_LIMIT;
+            const validLaps = Array.isArray(saved?.laps) && saved.laps.length <= MAX_LAPS
+                && saved.laps.every((lap, index) => validTime(lap) && (index === 0 || lap >= saved.laps[index - 1]));
+            if (saved && validTime(saved.elapsed) && (saved.startedAt === null || (Number.isFinite(saved.startedAt) && saved.startedAt >= 0)) && validLaps) {
+                this.stopwatchElapsed = saved.elapsed;
+                this.stopwatchStartedAt = saved.startedAt;
+                this.laps = saved.laps;
+            }
+        } catch (_) { this.notice = this.labels.storageUnavailable; }
+        try {
             const view = JSON.parse(localStorage.getItem(this.viewStorageKey) || 'null');
-            for (const mode of ['clock', 'timer']) {
+            for (const mode of MODES) {
                 if (Number.isInteger(view?.[mode]) && view[mode] >= 60 && view[mode] <= 400 && view[mode] % 10 === 0) this.zoomLevels[mode] = view[mode];
             }
         } catch (_) { this.viewNotice = this.labels.zoomStorageUnavailable || ''; }
@@ -60,7 +90,8 @@ export function createClockTool(labels = {}) {
             if (typeof sound === 'boolean') this.soundOn = sound;
         } catch (_) { /* ses tercihi okunamazsa varsayılan (açık) korunur */ }
         this.tick();
-        this.interval = window.setInterval(() => this.tick(), 200);
+        // Kronometre onda bir saniye gösterir.
+        this.interval = window.setInterval(() => this.tick(), 100);
         this.onVisibility = () => this.tick();
         this.onFullscreen = () => { this.fullScreen = !!document.fullscreenElement; this.scheduleZoomMeasurement(); };
         this.onExpandedKeydown = event => {
@@ -112,13 +143,18 @@ export function createClockTool(labels = {}) {
     persist() {
         try { localStorage.setItem(this.storageKey, JSON.stringify({ total: this.total, remaining: this.remaining, startedAt: this.startedAt, endsAt: this.endsAt, running: this.running, completed: this.completed, mode: this.mode })); } catch (_) { this.notice = this.labels.storageUnavailable; }
     },
-    setMode(mode) { this.mode = mode === 'timer' ? 'timer' : 'clock'; this.zoomAtLimit = false; this.persist(); this.scheduleZoomMeasurement(); },
+    setMode(mode) { this.mode = MODES.includes(mode) ? mode : 'clock'; this.zoomAtLimit = false; this.persist(); this.scheduleZoomMeasurement(); },
+    // Sekmeler arasında sağ/sol okla dolaşılır; odak yeni sekmeye geçer.
+    cycleMode(step) {
+        this.setMode(MODES[(MODES.indexOf(this.mode) + step + MODES.length) % MODES.length]);
+        this.$refs?.[`${this.mode}Tab`]?.focus();
+    },
     get zoomPercent() { return this.zoomLevels[this.mode]; },
     get zoomScale() { return this.zoomPercent / 100; },
     get canZoomIn() { return this.zoomPercent < 400 && !this.zoomAtLimit; },
     scheduleZoomMeasurement() { this.$nextTick?.(() => this.updateZoomLimit()); },
     updateZoomLimit() {
-        const face = this.mode === 'timer' ? this.$refs?.timerFace : this.$refs?.clockFace;
+        const face = this.$refs?.[`${this.mode}Face`];
         const limit = this.$refs?.zoomLimit;
         if (!face?.isConnected || !limit?.isConnected || typeof window.getComputedStyle !== 'function') return;
         const currentSize = Number.parseFloat(window.getComputedStyle(face).fontSize);
@@ -191,6 +227,45 @@ export function createClockTool(labels = {}) {
         this.remaining = this.total;
         this.notice = '';
         this.persist();
+    },
+    get stopwatchRunning() { return this.stopwatchStartedAt !== null; },
+    get stopwatchTotal() {
+        const running = this.stopwatchRunning ? Math.max(0, this.now - this.stopwatchStartedAt) : 0;
+        return Math.min(STOPWATCH_LIMIT, this.stopwatchElapsed + running);
+    },
+    get stopwatchText() { return stopwatchFormat(this.stopwatchTotal); },
+    // En yeni tur üstte: sıra, o ana kadarki toplam ve önceki turdan bu yana geçen süre.
+    get lapRows() {
+        return this.laps.map((total, index) => ({ number: index + 1, total: stopwatchFormat(total), split: stopwatchFormat(total - (this.laps[index - 1] ?? 0)) })).reverse();
+    },
+    persistStopwatch() {
+        try { localStorage.setItem(this.stopwatchStorageKey, JSON.stringify({ elapsed: this.stopwatchElapsed, startedAt: this.stopwatchStartedAt, laps: this.laps })); }
+        catch (_) { this.notice = this.labels.storageUnavailable; }
+    },
+    startStopwatch() {
+        if (this.stopwatchRunning || this.stopwatchElapsed >= STOPWATCH_LIMIT) return;
+        this.now = Date.now();
+        this.stopwatchStartedAt = this.now;
+        this.persistStopwatch();
+    },
+    pauseStopwatch() {
+        if (!this.stopwatchRunning) return;
+        this.now = Date.now();
+        this.stopwatchElapsed = this.stopwatchTotal;
+        this.stopwatchStartedAt = null;
+        this.persistStopwatch();
+    },
+    lap() {
+        if (!this.stopwatchRunning || this.laps.length >= MAX_LAPS) return;
+        this.now = Date.now();
+        this.laps = [...this.laps, Math.max(this.stopwatchTotal, this.laps.at(-1) ?? 0)];
+        this.persistStopwatch();
+    },
+    resetStopwatch() {
+        this.stopwatchElapsed = 0;
+        this.stopwatchStartedAt = null;
+        this.laps = [];
+        this.persistStopwatch();
     },
     get clockText() { return new Intl.DateTimeFormat(document.documentElement.lang || 'tr', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(this.now); },
     get dateText() { return new Intl.DateTimeFormat(document.documentElement.lang || 'tr', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(this.now); },

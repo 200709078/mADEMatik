@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createClockTool } from '../../resources/js/clock.js';
+import { createClockTool, stopwatchFormat, MAX_LAPS } from '../../resources/js/clock.js';
 
 const key = 'madematik-clock-v1';
 const labels = { storageUnavailable: 'Depolama kullanılamıyor.', invalidDuration: 'Geçersiz süre.' };
@@ -161,5 +161,78 @@ test('süre biçimi bir saatten kısaysa MM:SS, uzunsa HH:MM:SS olur; hazır sü
         for (let i = 0; i < 40; i++) timer.changeZoom(10);
         assert.equal(timer.zoomPercent, 400);
         timer.destroy();
+    } finally { env.restore(); }
+});
+
+test('kronometre biçimi onda bir saniye gösterir; bir saatten uzunsa saat eklenir', () => {
+    assert.equal(stopwatchFormat(0), '00:00.0');
+    assert.equal(stopwatchFormat(61299), '01:01.2');
+    assert.equal(stopwatchFormat(3723456), '01:02:03.4');
+    assert.equal(stopwatchFormat(-5), '00:00.0');
+});
+
+test('kronometre duraklatılınca durur, devam edince kaldığı yerden sayar ve sekme yeniden açılınca sürer', () => {
+    const env = environment();
+    try {
+        const tool = createClockTool(labels); tool.init(); tool.setMode('stopwatch');
+        tool.startStopwatch(); env.advance(12345); tool.tick();
+        assert.equal(tool.stopwatchText, '00:12.3'); assert.equal(tool.stopwatchRunning, true);
+        tool.pauseStopwatch(); env.advance(60000); tool.tick();
+        assert.equal(tool.stopwatchText, '00:12.3'); assert.equal(tool.stopwatchRunning, false);
+        tool.startStopwatch(); env.advance(7700); tool.destroy();
+        const reopened = createClockTool(labels); reopened.init();
+        assert.equal(reopened.mode, 'stopwatch'); assert.equal(reopened.stopwatchRunning, true);
+        assert.equal(reopened.stopwatchText, '00:20.0');
+        reopened.resetStopwatch();
+        assert.equal(reopened.stopwatchText, '00:00.0'); assert.equal(reopened.stopwatchRunning, false);
+        assert.deepEqual(JSON.parse(env.records.get('madematik-stopwatch-v1')), { elapsed: 0, startedAt: null, laps: [] });
+        reopened.destroy();
+    } finally { env.restore(); }
+});
+
+test('turlar yalnız çalışırken alınır, en yenisi üstte ara süresiyle listelenir ve 99 ile sınırlıdır', () => {
+    const env = environment();
+    try {
+        const tool = createClockTool(labels); tool.init();
+        tool.lap(); assert.deepEqual(tool.laps, []);
+        tool.startStopwatch(); env.advance(5000); tool.lap(); env.advance(3500); tool.lap();
+        assert.deepEqual(tool.lapRows, [
+            { number: 2, total: '00:08.5', split: '00:03.5' },
+            { number: 1, total: '00:05.0', split: '00:05.0' },
+        ]);
+        for (let i = 0; i < 120; i++) { env.advance(100); tool.lap(); }
+        assert.equal(tool.laps.length, MAX_LAPS);
+        tool.destroy();
+    } finally { env.restore(); }
+});
+
+test('bozuk kronometre kaydı yok sayılır; sistem saati geri alınsa da süre eksiye düşmez', () => {
+    for (const saved of ['{broken', { elapsed: -1, startedAt: null, laps: [] }, { elapsed: 10, startedAt: 'x', laps: [] },
+        { elapsed: 10, startedAt: null, laps: [5, 3] }, { elapsed: 10, startedAt: null, laps: Array(100).fill(1) }]) {
+        const env = environment();
+        try {
+            env.records.set('madematik-stopwatch-v1', typeof saved === 'string' ? saved : JSON.stringify(saved));
+            const tool = createClockTool(labels); tool.init();
+            assert.equal(tool.stopwatchElapsed, 0); assert.deepEqual(tool.laps, []); tool.destroy();
+        } finally { env.restore(); }
+    }
+    const env = environment();
+    try {
+        const tool = createClockTool(labels); tool.init(); tool.startStopwatch();
+        env.advance(-60000); tool.tick();
+        assert.equal(tool.stopwatchText, '00:00.0'); tool.destroy();
+    } finally { env.restore(); }
+});
+
+test('sekmeler okla üç mod arasında döner ve odak yeni sekmeye geçer', () => {
+    const env = environment();
+    try {
+        const focused = [];
+        const tool = createClockTool(labels);
+        tool.$refs = Object.fromEntries(['clock', 'timer', 'stopwatch'].map(mode => [`${mode}Tab`, { focus: () => focused.push(mode) }]));
+        tool.init();
+        tool.cycleMode(1); tool.cycleMode(1); tool.cycleMode(1); tool.cycleMode(-1);
+        assert.deepEqual(focused, ['timer', 'stopwatch', 'clock', 'stopwatch']);
+        tool.destroy();
     } finally { env.restore(); }
 });

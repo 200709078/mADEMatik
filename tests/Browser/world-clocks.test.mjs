@@ -74,13 +74,14 @@ test('şehir kataloğu benzersiz kimlikler, Türkçe/İngilizce adlar ve geçerl
     }
 });
 
-test('varsayılan dünya saatleri Ankara, İstanbul, Londra, New York, Tokyo ve Sidney sırasıyla aynı anı gösterir', () => {
+test('varsayılan dünya saatleri İstanbul, Berlin, Londra, New York, Tokyo ve Sidney sırasıyla aynı anı gösterir', () => {
     const env = environment(); const tool = env.tool();
-    assert.deepEqual(tool.selectedIds, ['ankara', 'istanbul', 'london', 'new-york', 'tokyo', 'sydney']);
-    assert.deepEqual(tool.selectedCities.map(city => city.time), ['15:00:00', '15:00:00', '13:00:00', '08:00:00', '21:00:00', '23:00:00']);
-    assert.equal(tool.selectedCities[0].name, 'Ankara');
-    assert.equal(tool.selectedCities[1].name, 'İstanbul');
+    assert.deepEqual(tool.selectedIds, ['istanbul', 'berlin', 'london', 'new-york', 'tokyo', 'sydney']);
+    assert.deepEqual(tool.selectedCities.map(city => city.time), ['15:00:00', '14:00:00', '13:00:00', '08:00:00', '21:00:00', '23:00:00']);
+    assert.equal(tool.selectedCities[0].name, 'İstanbul');
+    assert.equal(tool.selectedCities[1].name, 'Berlin');
     assert.equal(tool.selectedCities[0].offset, 'UTC+03:00');
+    assert.equal(tool.selectedCities[1].offset, 'UTC+02:00');
     tool.destroy();
 });
 
@@ -226,7 +227,9 @@ test('konum alınırken izin kaldırılması gecikmiş konum yanıtını geçers
         const tool = env.tool(); await flushPermissions(); assert.equal(tool.locationState, 'loading');
         changePermission(status, nextState);
         env.requests[0].success(location()); env.requests[0].error({ code: 1 });
-        assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null); assert.equal(tool.locationState, 'idle');
+        assert.equal(tool.hasLocation, false); assert.equal(tool.solarData, null);
+        assert.equal(tool.locationState, nextState === 'denied' ? 'error' : 'idle');
+        if (nextState === 'denied') assert.equal(tool.locationMessage, labels.locationDenied);
         changePermission(status, 'granted'); assert.equal(env.requests.length, 2);
         env.requests[1].success(location()); assert.equal(tool.hasLocation, true);
         tool.destroy();
@@ -372,4 +375,27 @@ test('güneş girdileri hatalı zaman dilimi ve koordinat için sessiz yanlış 
     assert.throws(() => calculateSolarDay({ now: NaN, latitude: 41, longitude: 29, timeZone: 'Europe/Istanbul' }), RangeError);
     assert.throws(() => calculateSolarDay({ now: Date.now(), latitude: 91, longitude: 29, timeZone: 'Europe/Istanbul' }), RangeError);
     assert.throws(() => calculateSolarDay({ now: Date.now(), latitude: 41, longitude: 29, timeZone: 'invalid/zone' }), RangeError);
+});
+
+test('konum izni düğmesi yalnız konum alınabilen tarayıcıda sunulur; tek seferlik izinle gelen konum kullanılır', async () => {
+    const env = environment(); const status = withPermission(env, 'prompt');
+    const tool = env.tool(); await flushPermissions();
+    assert.equal(tool.locationSupported, true); assert.equal(env.requests.length, 0);
+    tool.requestLocation(); assert.equal(env.requests.length, 1);
+    // "Bu seferlik izin ver": izin durumu 'prompt' kalır, gelen konum yine de kullanılır.
+    env.requests[0].success(location());
+    assert.equal(status.state, 'prompt'); assert.equal(tool.hasLocation, true); assert.equal(tool.locationState, 'ready');
+    tool.destroy();
+    const insecure = environment(); insecure.dependencies.window.isSecureContext = false;
+    assert.equal(insecure.tool().locationSupported, false);
+    const unsupported = environment(); delete unsupported.dependencies.navigator.geolocation;
+    assert.equal(unsupported.tool().locationSupported, false);
+});
+
+test('izin penceresinde reddedilirse başlangıç yazısı değil red açıklaması gösterilir', async () => {
+    const env = environment(); const status = withPermission(env, 'prompt');
+    const tool = env.tool(); await flushPermissions();
+    tool.requestLocation(); changePermission(status, 'denied'); env.requests[0].error({ code: 1 });
+    assert.equal(tool.locationState, 'error'); assert.equal(tool.locationMessage, labels.locationDenied);
+    tool.destroy();
 });
