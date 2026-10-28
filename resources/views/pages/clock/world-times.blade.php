@@ -17,7 +17,7 @@
                 <article class="surface-muted min-w-0 rounded-xl p-4" :aria-label="city.name">
                     <div class="flex items-center justify-between gap-2"><h3 class="font-semibold" x-text="city.name"></h3><button type="button" class="button button-ghost button-icon shrink-0" @click="removeCity(city.id)" :aria-label="@js(__('clock.remove_city',['city'=>':city'])).replace(':city',city.name)" :title="@js(__('clock.remove_city',['city'=>':city'])).replace(':city',city.name)"><x-icon name="x" class="h-4 w-4" /></button></div>
                     <p class="text-muted text-xs" x-text="city.offset"></p>
-                    <time class="mt-4 block font-mono text-3xl font-semibold tabular-nums" x-text="city.time" :datetime="new Date(worldNow).toISOString()"></time>
+                    <time class="clock-digits mt-4 block text-3xl font-semibold" x-text="city.time" :datetime="new Date(worldNow).toISOString()"></time>
                     <p class="text-muted mt-3 text-xs leading-5"><span x-text="city.date"></span> · <span x-text="city.dayLabel"></span></p>
                 </article>
             </template>
@@ -39,8 +39,8 @@
                 <p class="mt-4 text-sm font-medium" x-text="solarData.date"></p>
                 <p class="text-muted mt-1 break-words text-xs leading-6">{{ __('clock.device_timezone') }}: <span x-text="solarData.timeZone+' · '+solarData.offset"></span></p>
                 <dl class="mt-5 grid gap-3 sm:grid-cols-3">
-                    <div class="surface-muted rounded-xl p-5"><dt class="text-muted flex items-center gap-2 text-sm"><x-icon name="sunrise" class="h-4 w-4 text-[var(--brand-text)]" />{{ __('clock.sunrise') }}</dt><dd class="mt-3 font-mono text-3xl font-semibold tabular-nums" x-text="solarData.sunrise"></dd><dd class="text-muted mt-2 text-xs" x-text="solarData.sunriseDayLabel"></dd></div>
-                    <div class="surface-muted rounded-xl p-5"><dt class="text-muted flex items-center gap-2 text-sm"><x-icon name="sunset" class="h-4 w-4 text-[var(--brand-text)]" />{{ __('clock.sunset') }}</dt><dd class="mt-3 font-mono text-3xl font-semibold tabular-nums" x-text="solarData.sunset"></dd><dd class="text-muted mt-2 text-xs" x-text="solarData.sunsetDayLabel"></dd></div>
+                    <div class="surface-muted rounded-xl p-5"><dt class="text-muted flex items-center gap-2 text-sm"><x-icon name="sunrise" class="h-4 w-4 text-[var(--brand-text)]" />{{ __('clock.sunrise') }}</dt><dd class="clock-digits mt-3 text-3xl font-semibold" x-text="solarData.sunrise"></dd><dd class="text-muted mt-2 text-xs" x-text="solarData.sunriseDayLabel"></dd></div>
+                    <div class="surface-muted rounded-xl p-5"><dt class="text-muted flex items-center gap-2 text-sm"><x-icon name="sunset" class="h-4 w-4 text-[var(--brand-text)]" />{{ __('clock.sunset') }}</dt><dd class="clock-digits mt-3 text-3xl font-semibold" x-text="solarData.sunset"></dd><dd class="text-muted mt-2 text-xs" x-text="solarData.sunsetDayLabel"></dd></div>
                     <div class="surface-muted rounded-xl p-5"><dt class="text-muted flex items-center gap-2 text-sm"><x-icon name="sun" class="h-4 w-4 text-[var(--brand-text)]" />{{ __('clock.daylight') }}</dt><dd class="mt-3 text-2xl font-semibold" x-text="solarData.daylight"></dd></div>
                 </dl>
                 <p x-show="solarData.eventMessage" class="text-muted mt-4 text-sm leading-6" x-text="solarData.eventMessage"></p>

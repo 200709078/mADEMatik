@@ -148,7 +148,7 @@ test('süre biçimi bir saatten kısaysa MM:SS, uzunsa HH:MM:SS olur; hazır sü
     const env = environment();
     try {
         const timer = createClockTool(labels); timer.init();
-        assert.deepEqual(timer.presetMinutes, [5, 10, 15, 20, 40, 60]);
+        assert.deepEqual(timer.presetMinutes, [5, 10, 15, 20, 30, 40, 45, 60]);
         timer.selectPreset(5);
         assert.equal(timer.countdownText, '05:00');
         timer.hours = 1; timer.minutes = 2; timer.seconds = 3; timer.applyDuration();
@@ -235,4 +235,118 @@ test('sekmeler okla üç mod arasında döner ve odak yeni sekmeye geçer', () =
         assert.deepEqual(focused, ['timer', 'stopwatch', 'clock', 'stopwatch']);
         tool.destroy();
     } finally { env.restore(); }
+});
+
+test('süre bitince eksiye sayar; sekme başlığı kalan süreyi ve bitişi gösterir', () => {
+    const env = environment();
+    try {
+        document.title = 'Saat & Sayaç';
+        const timer = createClockTool({ ...labels, timeUp: 'Süre doldu' }); timer.init();
+        timer.minutes = 1; timer.seconds = 0; timer.start();
+        env.advance(15000); timer.tick();
+        assert.equal(document.title, '00:45 · Saat & Sayaç'); assert.equal(timer.timerFaceText, '00:45');
+        env.advance(45000); timer.tick();
+        assert.equal(timer.completed, true); assert.equal(timer.timerFaceText, '00:00');
+        env.advance(42400); timer.tick();
+        assert.equal(timer.timerFaceText, '−00:42'); assert.equal(timer.countdownText, '00:00');
+        assert.equal(document.title, 'Süre doldu · Saat & Sayaç');
+        timer.reset(); timer.tick(); assert.equal(document.title, 'Saat & Sayaç');
+        timer.setMode('stopwatch'); timer.startStopwatch(); env.advance(65400); timer.tick();
+        assert.equal(document.title, '01:05 · Saat & Sayaç');
+        timer.destroy(); assert.equal(document.title, 'Saat & Sayaç');
+    } finally { env.restore(); }
+});
+
+test('tam ekranda metin genişliği rakam ve ayraçlardan tahmin edilir', () => {
+    const env = environment();
+    try {
+        const tool = createClockTool(labels); tool.init();
+        tool.setMode('timer'); tool.selectPreset(5);
+        assert.equal(tool.faceText, '05:00'); assert.equal(tool.faceEm, 2.9);
+        tool.setMode('stopwatch'); assert.equal(tool.faceText, '00:00.0'); assert.equal(tool.faceEm, 3.8);
+        tool.destroy();
+    } finally { env.restore(); }
+});
+
+test('kısayollar: boşluk başlatır/duraklatır, R sıfırlar, T tur alır; yazı alanında ve düğmede devreye girmez', () => {
+    const env = environment();
+    try {
+        const tool = createClockTool(labels); tool.init(); tool.setMode('timer');
+        const press = (key, target = { closest: () => null }) => {
+            let prevented = false;
+            tool.shortcut({ key, target, preventDefault: () => { prevented = true; } });
+            return prevented;
+        };
+        assert.equal(press(' '), true); assert.equal(tool.running, true);
+        assert.equal(press(' ', { closest: () => ({}) }), false); assert.equal(tool.running, true);
+        press(' '); assert.equal(tool.running, false);
+        press('R'); assert.equal(tool.startedAt, null);
+        tool.setMode('stopwatch');
+        press(' '); env.advance(1000); press('t'); press('T');
+        assert.equal(tool.laps.length, 2); press('r'); assert.equal(tool.laps.length, 0);
+        tool.setMode('clock'); assert.equal(press(' '), false);
+        tool.destroy();
+    } finally { env.restore(); }
+});
+
+function fakeAudio() {
+    const nodes = [];
+    class Context {
+        constructor() { this.state = 'running'; this.currentTime = 0; this.destination = {}; }
+        createOscillator() {
+            const node = { frequency: {}, starts: [], stopped: 0, connect: gain => gain, start: at => node.starts.push(at), stop() { node.stopped++; }, disconnect() {} };
+            nodes.push(node); return node;
+        }
+        createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect: target => target }; }
+        resume() { this.state = 'running'; return Promise.resolve(); }
+    }
+    return { Context, nodes };
+}
+
+test('bitiş sesi başlarken bitiş anına zamanlanır; duraklatınca iptal edilir, çaldıysa yinelenmez', () => {
+    const env = environment();
+    try {
+        const audio = fakeAudio(); window.AudioContext = audio.Context;
+        const timer = createClockTool(labels); timer.init();
+        timer.minutes = 0; timer.seconds = 30; timer.start();
+        assert.equal(timer.alarmAt, 30); assert.equal(audio.nodes.length, 9);
+        assert.deepEqual(audio.nodes[0].starts, [30]);
+        timer.pause(); assert(audio.nodes.every(node => node.stopped > 0)); assert.equal(timer.alarmAt, null);
+        timer.start(); assert.equal(audio.nodes.length, 18);
+        // Ses zamanında çaldı: tamamlanınca ikinci kez çalınmaz.
+        timer.audioCtx.currentTime = 30; env.advance(30000); timer.tick();
+        assert.equal(timer.completed, true); assert.equal(audio.nodes.length, 18);
+        timer.destroy();
+    } finally { delete window.AudioContext; env.restore(); }
+});
+
+test('ses kapalıysa bitiş sesi zamanlanmaz; yenilenen sayfada ilk dokunuşta zamanlanır', () => {
+    const env = environment();
+    try {
+        const audio = fakeAudio(); window.AudioContext = audio.Context;
+        const timer = createClockTool(labels); timer.init(); timer.toggleSound();
+        timer.minutes = 1; timer.start(); assert.equal(audio.nodes.length, 0);
+        timer.toggleSound(); assert.equal(audio.nodes.length, 9);
+        timer.destroy();
+        const reopened = createClockTool(labels); reopened.init();
+        assert.equal(reopened.running, true); assert.equal(reopened.audioReady, false); assert.equal(reopened.alarmAt, null);
+        for (const callback of env.listeners.get('pointerdown')) callback();
+        assert.equal(reopened.audioReady, true); assert.notEqual(reopened.alarmAt, null);
+        reopened.destroy();
+    } finally { delete window.AudioContext; env.restore(); }
+});
+
+test('ekran kilidi sayaç veya kronometre çalışırken istenir, durunca bırakılır', async () => {
+    const env = environment();
+    const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+    try {
+        const requests = []; let released = 0;
+        Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { wakeLock: { request: async type => { requests.push(type); return { release: async () => { released++; } }; } } } });
+        const tool = createClockTool(labels); tool.init();
+        await tool.syncWakeLock(); assert.deepEqual(requests, []);
+        tool.setMode('stopwatch'); tool.startStopwatch(); await tool.syncWakeLock(); await tool.syncWakeLock();
+        assert.deepEqual(requests, ['screen']);
+        tool.pauseStopwatch(); await tool.syncWakeLock(); assert.equal(released, 1); assert.equal(tool.wakeLock, null);
+        tool.destroy();
+    } finally { Object.defineProperty(globalThis, 'navigator', original); env.restore(); }
 });

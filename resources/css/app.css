@@ -163,12 +163,21 @@
     .admin-content { padding: 2rem; max-width: 92rem; width: 100%; }
     .admin-content h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; }
     .clock-panel { container-type: inline-size; }
-    .clock-face { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: min(calc(clamp(3rem, 10vw, 8rem) * var(--clock-zoom, 1)), 20cqi); font-weight: 600; line-height: 1.15; letter-spacing: -.05em; white-space: nowrap; }
+    /* Saat rakamları her sistemde aynı: Inter, eş genişlikli rakamlar (sistemin eş genişlikli yazı tipi Pardus'ta noktalı, Windows'ta çizgili sıfır gösteriyordu). */
+    .clock-digits { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }
+    /* --clock-em: gösterilen metnin em cinsinden tahmini genişliği (JS faceEm); rakamlar panel genişliğini aşmaz. */
+    .clock-face { font-family: var(--font-sans); font-variant-numeric: tabular-nums; font-size: min(calc(clamp(3rem, 10vw, 8rem) * var(--clock-zoom, 1)), calc(92cqi / var(--clock-em, 4.4))); font-weight: 700; line-height: 1.1; letter-spacing: -.03em; white-space: nowrap; }
+    .clock-face-done { color: var(--danger); animation: clock-alert 1s steps(2, jump-none) 6; }
+    @keyframes clock-alert { 50% { opacity: .2; } }
+    @media (max-width: 639.98px) { .clock-panel { --clock-zoom: 1 !important; } }
     .clock-panel:is(:fullscreen, .clock-panel-expanded) { display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; background: var(--page); padding: clamp(1rem, 3vw, 2rem); border-radius: 0; }
     .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-panel-content { min-height: 0; display: flex; flex-direction: column; justify-content: safe center; overflow-y: auto; }
     .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-panel-content > * { flex-shrink: 0; }
     .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-sound-slot { width: 2.75rem; height: 2.75rem; }
-    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-face { font-size: min(calc(clamp(3rem, 15vw, 14rem) * var(--clock-zoom, 1)), 20cqi); }
+    /* Tam ekranda rakamlar ekran genişliğinin %80'ine ya da yüksekliğinin %40'ına kadar büyür; yakınlaştırma genişliğin %94'ünde durur. */
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-face { font-size: min(calc(min(80cqi / var(--clock-em, 4.4), 40vh) * var(--clock-zoom, 1)), calc(94cqi / var(--clock-em, 4.4))); }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-fullscreen-hide { display: none; }
+    .clock-panel:is(:fullscreen, .clock-panel-expanded) .clock-progress { height: .75rem !important; max-width: min(64rem, 90%) !important; }
     .clock-panel-expanded { position: fixed; inset: 0; z-index: 60; }
     .link { color: var(--brand-text); text-decoration: underline; text-underline-offset: 4px; }
     .project-cover { aspect-ratio: 16/9; width: 100%; object-fit: cover; background: var(--surface-muted); }

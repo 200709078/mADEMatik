@@ -2,14 +2,24 @@ const MODES = ['clock', 'timer', 'stopwatch'];
 // Kronometre en fazla 100 saat ve 99 tur tutar; bozuk kayıtlar bu sınırlarla elenir.
 const STOPWATCH_LIMIT = 360000000;
 export const MAX_LAPS = 99;
+const DURATION_LIMIT = 359999000;
+// Bitiş sesi: üç kez üçlü bip (yaklaşık 2,5 sn).
+const ALARM_BEEPS = [0, .18, .36, .9, 1.08, 1.26, 1.8, 1.98, 2.16];
+const WAKE_LOCK_RETRY = 10000;
+
+const pad = part => String(part).padStart(2, '0');
+// Saniye cinsinden süre: bir saatten kısaysa MM:SS, uzunsa HH:MM:SS.
+function durationText(seconds) {
+    const parts = [Math.floor(seconds / 60) % 60, seconds % 60].map(pad);
+    if (seconds >= 3600) parts.unshift(pad(Math.floor(seconds / 3600)));
+    return parts.join(':');
+}
 
 // 0,1 saniyelik çözünürlük: bir saatten kısaysa MM:SS.d, uzunsa HH:MM:SS.d.
 export function stopwatchFormat(milliseconds) {
     const tenths = Math.floor(Math.max(0, milliseconds) / 100);
     const seconds = Math.floor(tenths / 10);
-    const parts = [Math.floor(seconds / 60) % 60, seconds % 60].map(part => String(part).padStart(2, '0'));
-    if (seconds >= 3600) parts.unshift(String(Math.floor(seconds / 3600)).padStart(2, '0'));
-    return `${parts.join(':')}.${tenths % 10}`;
+    return `${durationText(seconds)}.${tenths % 10}`;
 }
 
 export function createClockTool(labels = {}) {
@@ -40,16 +50,24 @@ export function createClockTool(labels = {}) {
     soundStorageKey: 'madematik-clock-sound-v1',
     soundOn: true,
     audioCtx: null,
+    // Tarayıcı sesi ancak bir dokunuştan sonra çalar; yenilenen sayfada bu bilgi uyarı olarak gösterilir.
+    audioReady: false,
+    alarmNodes: [],
+    alarmAt: null,
+    wakeLock: null,
+    wakeLockPending: false,
+    wakeLockRetryAt: 0,
+    baseTitle: null,
     zoomLevels: { clock: 100, timer: 100, stopwatch: 100 },
     zoomAtLimit: false,
     viewNotice: '',
-    presetMinutes: [5, 10, 15, 20, 40, 60],
+    presetMinutes: [5, 10, 15, 20, 30, 40, 45, 60],
     init() {
         try {
             let saved;
             try { saved = JSON.parse(localStorage.getItem(this.storageKey) || 'null'); } catch (_) { localStorage.removeItem(this.storageKey); }
             const validTimestamp = value => value === null || (Number.isFinite(value) && value >= 0);
-            const validSaved = saved && Number.isInteger(saved.total) && saved.total > 0 && saved.total <= 359999000
+            const validSaved = saved && Number.isInteger(saved.total) && saved.total > 0 && saved.total <= DURATION_LIMIT
                 && Number.isFinite(saved.remaining) && saved.remaining >= 0 && saved.remaining <= saved.total
                 && validTimestamp(saved.startedAt) && validTimestamp(saved.endsAt)
                 && typeof saved.running === 'boolean' && typeof saved.completed === 'boolean'
@@ -89,6 +107,7 @@ export function createClockTool(labels = {}) {
             const sound = JSON.parse(localStorage.getItem(this.soundStorageKey) || 'null');
             if (typeof sound === 'boolean') this.soundOn = sound;
         } catch (_) { /* ses tercihi okunamazsa varsayılan (açık) korunur */ }
+        if (typeof document.title === 'string') this.baseTitle = document.title;
         this.tick();
         // Kronometre onda bir saniye gösterir.
         this.interval = window.setInterval(() => this.tick(), 100);
@@ -103,6 +122,11 @@ export function createClockTool(labels = {}) {
             if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
             else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
         };
+        this.onShortcut = event => this.shortcut(event);
+        // Yenilenen sayfada ses ilk dokunuşta açılır ve bitiş anına zamanlanır.
+        this.onGesture = () => { if (this.running && this.soundOn && !this.audioReady) { this.unlockAudio(); this.scheduleAlarm(); } };
+        document.addEventListener('keydown', this.onShortcut);
+        document.addEventListener('pointerdown', this.onGesture);
         document.addEventListener('visibilitychange', this.onVisibility);
         document.addEventListener('fullscreenchange', this.onFullscreen);
         document.addEventListener('keydown', this.onExpandedKeydown);
@@ -121,8 +145,14 @@ export function createClockTool(labels = {}) {
     },
     destroy() {
         window.clearInterval(this.interval);
+        document.removeEventListener('keydown', this.onShortcut);
+        document.removeEventListener('pointerdown', this.onGesture);
         document.removeEventListener('visibilitychange', this.onVisibility);
         document.removeEventListener('fullscreenchange', this.onFullscreen);
+        this.cancelAlarm();
+        this.wakeLock?.release?.().catch?.(() => {});
+        this.wakeLock = null;
+        if (this.baseTitle !== null) document.title = this.baseTitle;
         document.removeEventListener('keydown', this.onExpandedKeydown);
         window.removeEventListener?.('resize', this.onResize);
         this.zoomResizeObserver?.disconnect();
@@ -136,8 +166,55 @@ export function createClockTool(labels = {}) {
                 this.running = false;
                 this.completed = true;
                 this.persist();
-                this.beep();
+                // Zamanlanmış ses çaldıysa yinelenmez; uyku vb. yüzünden gecikmişse şimdi çalınır.
+                const played = this.alarmAt !== null && this.audioCtx?.currentTime >= this.alarmAt - .05;
+                if (played) { this.alarmNodes = []; this.alarmAt = null; }
+                else { this.cancelAlarm(); this.beep(); }
             }
+        }
+        this.updateTitle();
+        this.syncWakeLock();
+    },
+    updateTitle() {
+        if (this.baseTitle === null) return;
+        const prefix = this.completed ? this.labels.timeUp
+            : this.running ? this.countdownText
+            : this.stopwatchRunning ? this.stopwatchText.slice(0, -2) : '';
+        const title = prefix ? `${prefix} · ${this.baseTitle}` : this.baseTitle;
+        if (document.title !== title) document.title = title;
+    },
+    // Sayaç ya da kronometre çalışırken ve tam ekranda ekran kararmaz (desteklenen tarayıcılarda).
+    async syncWakeLock() {
+        const wanted = (this.running || this.stopwatchRunning || this.fullScreen || this.expanded) && document.visibilityState !== 'hidden';
+        if (!wanted) {
+            const lock = this.wakeLock;
+            this.wakeLock = null;
+            if (lock) { try { await lock.release(); } catch (_) { /* zaten bırakılmış */ } }
+            return;
+        }
+        const api = globalThis.navigator?.wakeLock;
+        if (this.wakeLock || this.wakeLockPending || typeof api?.request !== 'function' || Date.now() < this.wakeLockRetryAt) return;
+        this.wakeLockPending = true;
+        try {
+            const lock = await api.request('screen');
+            this.wakeLock = lock;
+            lock.addEventListener?.('release', () => { if (this.wakeLock === lock) this.wakeLock = null; });
+        } catch (_) { this.wakeLockRetryAt = Date.now() + WAKE_LOCK_RETRY; }
+        finally { this.wakeLockPending = false; }
+    },
+    shortcut(event) {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+        if (event.target?.closest?.('input, textarea, select, button, a, [contenteditable="true"]')) return;
+        const key = String(event.key).toLocaleLowerCase('tr');
+        const act = action => { event.preventDefault(); action(); };
+        if (key === 'f') return act(() => this.toggleFullscreen());
+        if (this.mode === 'timer') {
+            if (key === ' ') return act(() => (this.running ? this.pause() : this.start()));
+            if (key === 'r') return act(() => this.reset());
+        } else if (this.mode === 'stopwatch') {
+            if (key === ' ') return act(() => (this.stopwatchRunning ? this.pauseStopwatch() : this.startStopwatch()));
+            if (key === 'r') return act(() => this.resetStopwatch());
+            if (key === 't') return act(() => this.lap());
         }
     },
     persist() {
@@ -215,11 +292,13 @@ export function createClockTool(labels = {}) {
         this.running = true;
         this.completed = false;
         this.unlockAudio();
+        this.scheduleAlarm();
         this.persist();
         this.tick();
     },
-    pause() { this.tick(); this.running = false; this.endsAt = null; this.persist(); },
+    pause() { this.tick(); this.running = false; this.endsAt = null; this.cancelAlarm(); this.persist(); },
     reset() {
+        this.cancelAlarm();
         this.running = false;
         this.completed = false;
         this.startedAt = null;
@@ -275,26 +354,79 @@ export function createClockTool(labels = {}) {
         day.setUTCDate(day.getUTCDate() + 4 - (day.getUTCDay() || 7));
         return Math.ceil((((day - Date.UTC(day.getUTCFullYear(), 0, 1)) / 86400000) + 1) / 7);
     },
+    // Süre bitince ne kadar aşıldığı: −MM:SS.
+    get overtimeText() {
+        const over = this.completed && this.endsAt !== null ? Math.min(DURATION_LIMIT, Math.max(0, this.now - this.endsAt)) : 0;
+        const seconds = Math.floor(over / 1000);
+        return `${seconds > 0 ? '−' : ''}${durationText(seconds)}`;
+    },
+    get timerFaceText() { return this.completed ? this.overtimeText : this.countdownText; },
+    get faceText() { return this.mode === 'timer' ? this.timerFaceText : this.mode === 'stopwatch' ? this.stopwatchText : this.clockText; },
+    // Tam ekranda rakamlar bu genişliğe (em) göre ekrana sığdırılır: rakam ve eksi ~0,6 em, ayraçlar ~0,3 em.
+    get faceEm() {
+        let em = .2;
+        for (const character of this.faceText) em += /[0-9−]/.test(character) ? .6 : .3;
+        return Math.round(em * 10) / 10;
+    },
+    get lastMinute() { return this.running && this.remaining <= 60000; },
     get remainingPercent() { return Math.max(0, Math.min(100, this.total ? this.remaining / this.total * 100 : 0)); },
     get countdownText() {
         const value = Math.ceil(this.remaining / 1000);
-        const parts = [Math.floor(value / 60) % 60, value % 60].map(part => String(part).padStart(2, '0'));
-        if (this.total >= 3600000) parts.unshift(String(Math.floor(value / 3600)).padStart(2, '0'));
+        const parts = [Math.floor(value / 60) % 60, value % 60].map(pad);
+        if (this.total >= 3600000) parts.unshift(pad(Math.floor(value / 3600)));
         return parts.join(':');
     },
     toggleSound() {
         this.soundOn = !this.soundOn;
         try { localStorage.setItem(this.soundStorageKey, JSON.stringify(this.soundOn)); }
         catch (_) { this.notice = this.labels.storageUnavailable; }
-        if (this.soundOn) this.unlockAudio();
+        if (this.soundOn) { this.unlockAudio(); this.scheduleAlarm(); } else this.cancelAlarm();
     },
     unlockAudio() {
         try {
             const Ctx = window.AudioContext || window.webkitAudioContext;
             if (!Ctx) return;
             if (!this.audioCtx) this.audioCtx = new Ctx();
-            if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+            const ctx = this.audioCtx;
+            this.audioReady = ctx.state === 'running';
+            if (ctx.state === 'suspended') {
+                Promise.resolve(ctx.resume()).then(() => {
+                    this.audioReady = ctx.state === 'running';
+                    this.scheduleAlarm();
+                }, () => {});
+            }
         } catch (_) { /* ses desteklenmiyorsa sessiz devam edilir */ }
+    },
+    playAlarm(ctx, at) {
+        return ALARM_BEEPS.map(offset => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const start = at + offset;
+            osc.type = 'triangle';
+            osc.frequency.value = 880;
+            gain.gain.setValueAtTime(0.0001, start);
+            gain.gain.exponentialRampToValueAtTime(0.45, start + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(start);
+            osc.stop(start + 0.16);
+            return osc;
+        });
+    },
+    // Ses, sayaç başlarken bitiş anına zamanlanır: arka plandaki sekmede zamanlayıcı yavaşlasa da zamanında çalar.
+    scheduleAlarm() {
+        this.cancelAlarm();
+        const ctx = this.audioCtx;
+        if (!this.soundOn || !this.running || this.endsAt === null || ctx?.state !== 'running') return;
+        try {
+            this.alarmAt = ctx.currentTime + Math.max(0, (this.endsAt - Date.now()) / 1000);
+            this.alarmNodes = this.playAlarm(ctx, this.alarmAt);
+        } catch (_) { this.alarmNodes = []; this.alarmAt = null; }
+    },
+    cancelAlarm() {
+        for (const node of this.alarmNodes) { try { node.stop(); node.disconnect?.(); } catch (_) { /* çalmış ya da durmuş */ } }
+        this.alarmNodes = [];
+        this.alarmAt = null;
     },
     beep() {
         try {
@@ -302,18 +434,7 @@ export function createClockTool(labels = {}) {
             this.unlockAudio();
             const ctx = this.audioCtx;
             if (!ctx || ctx.state !== 'running') return;
-            [0, 0.3].forEach(delay => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = 660;
-                gain.gain.setValueAtTime(0.0001, ctx.currentTime + delay);
-                gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + delay + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + 0.2);
-                osc.connect(gain).connect(ctx.destination);
-                osc.start(ctx.currentTime + delay);
-                osc.stop(ctx.currentTime + delay + 0.22);
-            });
+            this.playAlarm(ctx, ctx.currentTime);
         } catch (_) { /* ses hatası sayacı etkilemez */ }
     },
     async toggleFullscreen() {
