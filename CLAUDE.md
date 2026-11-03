@@ -27,6 +27,7 @@ PHP 8.4, Laravel 13, Blade, Tailwind CSS 4 (`@tailwindcss/vite`), Alpine.js, Luc
 - Adminer: `http://localhost:8080/adminer.php`.
 - `storage/runtime/mariadb*` ve `scripts/dev-database.sh` eski özel MariaDB örneğine aittir (13 Eki 2026'da durduruldu) — kullanılmıyor.
 - Yerel mail `.env`'de SMTP'ye açık (`MAIL_ALLOW_LOCAL_SEND=true`); gerçek adreslere test maili göndermekten kaçın. Kuyruk yerelde `sync`.
+- E-posta görevleri (2026-11-03, bkz. `~/Belgeler/CLAUDE.md` → E-posta adresleri): çıkış `info@`, bildirimler (`MAIL_ADMIN_NOTIFICATION_ADDRESS`) ve yanıt adresi (`MAIL_REPLY_TO_ADDRESS`, `config/mail.php` `reply_to`) `ademvarol@`, iletişim sayfasındaki adres `ademvarol@` (yönetim paneli ayarı).
 - `EMAIL_VERIFICATION_ENABLED=false` (kullanıcı talimatıyla geçici kapalı; kayıtta e-posta iki kez yazılır).
 
 ## Testler

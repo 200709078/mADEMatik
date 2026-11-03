@@ -119,4 +119,11 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    // Otomatik e-postalar MAIL_FROM_ADDRESS'ten (info@) çıkar; "Yanıtla" bu adrese gider (ademvarol@).
+    // Boşsa yanıt adresi eklenmez.
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_TO_ADDRESS'),
+        'name' => env('MAIL_REPLY_TO_NAME', env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel'))),
+    ],
+
 ];
